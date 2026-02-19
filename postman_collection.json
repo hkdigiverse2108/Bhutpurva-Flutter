@@ -1,0 +1,1366 @@
+{
+  "info": {
+    "_postman_id": "bhutpurva-api-collection",
+    "name": "Bhutpurva API Collection",
+    "description": "Complete API collection for Bhutpurva project. Base URL: http://localhost:5000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth (No Token Required)",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John\",\n  \"fatherName\": \"Robert\",\n  \"surname\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"birthDate\": \"2000-01-01\",\n  \"phoneNumber\": \"9876543210\",\n  \"whatsappNumber\": \"9876543210\",\n  \"gender\": \"male\",\n  \"hrNo\": \"HR001\",\n  \"currentCity\": \"Ahmedabad\",\n  \"addresses\": [{ \"address\": \"123 Main St\", \"city\": \"Ahmedabad\", \"district\": \"Ahmedabad\", \"state\": \"Gujarat\", \"country\": \"India\", \"pincode\": \"380001\", \"type\": \"current\" }],\n  \"occupation\": \"Engineer\",\n  \"professions\": [\"Software Developer\"],\n  \"education\": [\"B.Tech\"],\n  \"maritalStatus\": \"single\",\n  \"bloodGroup\": \"O+\",\n  \"class10\": { \"class\": \"10\", \"isStudded\": true, \"branch\": \"Science\", \"passingYear\": \"2015\", \"medium\": \"English\", \"hostel\": false },\n  \"class12\": { \"class\": \"12\", \"isStudded\": true, \"branch\": \"Science\", \"passingYear\": \"2017\", \"medium\": \"English\", \"hostel\": false },\n  \"skill\": \"Coding\",\n  \"hobbies\": \"Reading\",\n  \"talents\": [\"Singing\"],\n  \"awards\": [\"Best Student\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register-admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register-admin"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/send-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "send-otp"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"9876543210\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-otp"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"9876543210\",\n  \"otp\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"newPassword\": \"newpass123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Upload (No Token Required)",
+      "item": [
+        {
+          "name": "Upload Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "files", "type": "file", "src": "" }]
+            }
+          }
+        },
+        {
+          "name": "Get Images",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload"]
+            }
+          }
+        },
+        {
+          "name": "Delete Image (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/user/get?page=1&limit=10&search=&isVerified=true&isDeleted=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "get"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" },
+                { "key": "isVerified", "value": "true" },
+                { "key": "isDeleted", "value": "false" },
+                {
+                  "key": "roleFilter",
+                  "value": "user",
+                  "description": "Values: admin, user, monitor, leader"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/user/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "get", ":id"],
+              "variable": [{ "key": "id", "value": "USER_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID_HERE\",\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@example.com\",\n  \"role\": \"user\",\n  \"phoneNumber\": \"9876543210\",\n  \"currentCity\": \"Mumbai\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User Image",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/update-image",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "update-image"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID_HERE\",\n  \"image\": \"https://example.com/image.jpg\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "delete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID_HERE\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Batch",
+      "item": [
+        {
+          "name": "Create Batch (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "create"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Batch A\"\n}" }
+          }
+        },
+        {
+          "name": "Get Batches (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/batch/get?page=1&limit=10&search=",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "get"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" },
+                { "key": "groupFilter", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Batch By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/batch/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "get", ":id"],
+              "variable": [{ "key": "id", "value": "BATCH_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Update Batch (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batchId\": \"BATCH_ID_HERE\",\n  \"name\": \"Updated Batch Name\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Batch (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/batch/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "delete", ":id"],
+              "variable": [{ "key": "id", "value": "BATCH_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Add Devotee to Batch (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/add-devotee",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "add-devotee"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batchId\": \"BATCH_ID_HERE\",\n  \"devoteeId\": \"USER_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Devotee from Batch (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/remove-devotee",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "remove-devotee"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batchId\": \"BATCH_ID_HERE\",\n  \"devoteeId\": \"USER_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Monitor (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/add-monitor",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "add-monitor"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batchId\": \"BATCH_ID_HERE\",\n  \"userId\": \"USER_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Monitor (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/remove-monitor",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "remove-monitor"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batchId\": \"BATCH_ID_HERE\",\n  \"userId\": \"USER_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Assign Devotee (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/assign-devotee",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "assign-devotee"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monitorId\": \"MONITOR_ID_HERE\",\n  \"devoteeIds\": [\"USER_ID_1\", \"USER_ID_2\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Unassign Devotee (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batch/unassign-devotee",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "unassign-devotee"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monitorId\": \"MONITOR_ID_HERE\",\n  \"devoteeIds\": [\"USER_ID_1\", \"USER_ID_2\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Monitors (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/batch/get-monitors?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "get-monitors"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "batchFilter", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Monitor By ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/batch/get-monitor/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["batch", "get-monitor", ":id"],
+              "variable": [{ "key": "id", "value": "MONITOR_ID_HERE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Group",
+      "item": [
+        {
+          "name": "Create Group (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/group/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["group", "create"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Group Alpha\",\n  \"leaders\": [\"USER_ID_HERE\"],\n  \"batches\": [\"BATCH_ID_HERE\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Groups",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/group/get?page=1&limit=10&search=",
+              "host": ["{{baseUrl}}"],
+              "path": ["group", "get"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Group By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/group/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["group", "get", ":id"],
+              "variable": [{ "key": "id", "value": "GROUP_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Update Group (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/group/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["group", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Group\",\n  \"leaders\": [\"USER_ID_HERE\"],\n  \"batches\": [\"BATCH_ID_HERE\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Group (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/group/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["group", "delete", ":id"],
+              "variable": [{ "key": "id", "value": "GROUP_ID_HERE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Program",
+      "item": [
+        {
+          "name": "Create Program",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/program/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["program", "create"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Weekly Satsang\",\n  \"batchId\": \"BATCH_ID_HERE\",\n  \"description\": \"Weekly program description\",\n  \"date\": \"2026-03-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Programs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/program/get?page=1&limit=10&search=&batchFilter=",
+              "host": ["{{baseUrl}}"],
+              "path": ["program", "get"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" },
+                { "key": "batchFilter", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/program/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["program", ":id"],
+              "variable": [{ "key": "id", "value": "PROGRAM_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Update Program",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/program/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["program", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"programId\": \"PROGRAM_ID_HERE\",\n  \"name\": \"Updated Program\",\n  \"description\": \"Updated description\",\n  \"date\": \"2026-03-15\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Program",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/program/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["program", ":id"],
+              "variable": [{ "key": "id", "value": "PROGRAM_ID_HERE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Get Attendance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/get?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "get"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "startDateFilter", "value": "" },
+                { "key": "endDateFilter", "value": "" },
+                { "key": "programFilter", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "get", ":id"],
+              "variable": [{ "key": "id", "value": "ATTENDANCE_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Get User Attendance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/user/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "user", ":id"],
+              "variable": [{ "key": "id", "value": "USER_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Update Attendance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/update/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "update", ":id"],
+              "variable": [{ "key": "id", "value": "ATTENDANCE_ID_HERE" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendanceId\": \"ATTENDANCE_ID_HERE\",\n  \"students\": [\n    { \"studentId\": \"USER_ID_1\", \"isPresent\": true },\n    { \"studentId\": \"USER_ID_2\", \"isPresent\": false }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Life Light",
+      "item": [
+        {
+          "name": "Add Life Light",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lifeLight/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["lifeLight", "add"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID_HERE\",\n  \"lifeLight\": \"My life light story...\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Life Light",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lifeLight/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["lifeLight", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifeLightId\": \"LIFELIGHT_ID_HERE\",\n  \"status\": \"viewed\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Life Light (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/lifeLight/get?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["lifeLight", "get"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "userFilter", "value": "" },
+                {
+                  "key": "statusFilter",
+                  "value": "",
+                  "description": "Values: pending, viewed, draft"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Life Light By User ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/lifeLight/user/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["lifeLight", "user", ":id"],
+              "variable": [{ "key": "id", "value": "USER_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Get Life Light By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/lifeLight/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["lifeLight", "get", ":id"],
+              "variable": [{ "key": "id", "value": "LIFELIGHT_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Life Light",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/lifeLight/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["lifeLight", "delete", ":id"],
+              "variable": [{ "key": "id", "value": "LIFELIGHT_ID_HERE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anubhuti",
+      "item": [
+        {
+          "name": "Create Anubhuti",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/anubhuti/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["anubhuti", "create"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"anubhuti\": \"My anubhuti experience...\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Anubhuti",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/anubhuti/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["anubhuti", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"anubhuti\": \"Updated anubhuti...\",\n  \"anubhutiId\": \"ANUBHUTI_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Anubhuti (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/anubhuti/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["anubhuti", "delete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"anubhutiId\": \"ANUBHUTI_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Anubhuti",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/anubhuti/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["anubhuti", "get"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"userFilter\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feedback",
+      "item": [
+        {
+          "name": "Add Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/feedback/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedback", "add"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID_HERE\",\n  \"feedback\": \"This is my feedback...\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Feedback (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/feedback/get?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedback", "get"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "userFilter", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Feedback (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/feedback/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedback", ":id"],
+              "variable": [{ "key": "id", "value": "FEEDBACK_ID_HERE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Legality",
+      "item": [
+        {
+          "name": "Add/Update Legality (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/legality/add-update",
+              "host": ["{{baseUrl}}"],
+              "path": ["legality", "add-update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"privacy_policy\",\n  \"content\": \"<h1>Privacy Policy</h1><p>Content here...</p>\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Legality (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/legality/get?type=privacy_policy",
+              "host": ["{{baseUrl}}"],
+              "path": ["legality", "get"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "privacy_policy",
+                  "description": "Values: privacy_policy, terms_and_conditions"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setting",
+      "item": [
+        {
+          "name": "Add/Update Setting (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setting/add-update",
+              "host": ["{{baseUrl}}"],
+              "path": ["setting", "add-update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"logo\": \"https://example.com/logo.png\",\n  \"appName\": \"Bhutpurva\",\n  \"webSiteUrl\": \"https://bhutpurva.com\",\n  \"supportEmail\": \"support@bhutpurva.com\",\n  \"supportPhone\": \"9876543210\",\n  \"supportWhatsApp\": \"9876543210\",\n  \"address\": \"Ahmedabad, Gujarat\",\n  \"playStoreId\": \"com.bhutpurva.app\",\n  \"appStoreId\": \"com.bhutpurva.app\",\n  \"playStoreUrl\": \"https://play.google.com/store/apps/details?id=com.bhutpurva.app\",\n  \"appStoreUrl\": \"https://apps.apple.com/app/bhutpurva\",\n  \"sgsiPdf\": \"https://example.com/sgsi.pdf\",\n  \"socialLinks\": {\n    \"facebook\": \"https://facebook.com/bhutpurva\",\n    \"instagram\": \"https://instagram.com/bhutpurva\",\n    \"twitter\": \"https://twitter.com/bhutpurva\",\n    \"linkedin\": \"https://linkedin.com/company/bhutpurva\",\n    \"youtube\": \"https://youtube.com/bhutpurva\",\n    \"whatsapp\": \"https://wa.me/9876543210\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setting/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["setting", "get"]
+            },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Get SGIS PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setting/get-sgis-pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["setting", "get-sgis-pdf"]
+            },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tithi Calender",
+      "item": [
+        {
+          "name": "Add/Update Tithi Calender (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tithiCalender/add-update",
+              "host": ["{{baseUrl}}"],
+              "path": ["tithiCalender", "add-update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2026,\n  \"calender\": [\n    { \"month\": \"january\", \"image\": \"https://example.com/jan.jpg\" },\n    { \"month\": \"february\", \"image\": \"https://example.com/feb.jpg\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Add/Update Month (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tithiCalender/add-update-month",
+              "host": ["{{baseUrl}}"],
+              "path": ["tithiCalender", "add-update-month"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tithiCalenderId\": \"CALENDER_ID_HERE\",\n  \"month\": \"march\",\n  \"image\": \"https://example.com/march.jpg\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Tithi Calender",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/tithiCalender/",
+              "host": ["{{baseUrl}}"],
+              "path": ["tithiCalender", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Family",
+      "item": [
+        {
+          "name": "Get Family",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/family/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["family", "get"]
+            }
+          }
+        },
+        {
+          "name": "Add Family",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/family/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["family", "add"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID_HERE\",\n  \"members\": [\n    { \"memberId\": \"MEMBER_USER_ID\", \"relationship\": \"father\" },\n    { \"memberId\": \"MEMBER_USER_ID_2\", \"relationship\": \"mother\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Family",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/family/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["family", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"familyId\": \"FAMILY_ID_HERE\",\n  \"members\": [\n    { \"memberId\": \"MEMBER_USER_ID\", \"relationship\": \"brother\" }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Request",
+      "item": [
+        {
+          "name": "Update Delete Request (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deleteRequest/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["deleteRequest", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"REQUEST_ID_HERE\",\n  \"status\": \"approved\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Delete Requests (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deleteRequest/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["deleteRequest", "get"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"status\": \"pending\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Banner",
+      "item": [
+        {
+          "name": "Create Banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/banner/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["banner", "create"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"https://example.com/banner.jpg\",\n  \"title\": \"Banner Title\",\n  \"subtitle\": \"Banner Subtitle\",\n  \"link\": \"https://example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Banners",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/banner/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["banner", "get"]
+            }
+          }
+        },
+        {
+          "name": "Get Banner By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/banner/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["banner", "get", ":id"],
+              "variable": [{ "key": "id", "value": "BANNER_ID_HERE" }]
+            }
+          }
+        },
+        {
+          "name": "Update Banner",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/banner/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["banner", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"BANNER_ID_HERE\",\n  \"title\": \"Updated Title\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Banner",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/banner/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["banner", "delete", ":id"],
+              "variable": [{ "key": "id", "value": "BANNER_ID_HERE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Is Server Up",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/isServerUp",
+              "host": ["{{baseUrl}}"],
+              "path": ["isServerUp"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  }
+}

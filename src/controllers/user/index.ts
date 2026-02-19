@@ -1,0 +1,209 @@
+import { findOneAndPopulate } from './../../helper/database-service';
+import { date } from "joi";
+import { apiResponse, DELETE_REQUEST_STATUS, ROLES, STATUS_CODE } from "../../common";
+import { addressModel, studyDetailsModel, userModel } from "../../database";
+import { countData, createData, findAllWithPopulate, getFirstMatch, reqInfo, responseMessage, updateData, deleteFile } from "../../helper";
+import { deleteUserSchema, getAllUsersSchema, getUserByIdSchema, updateImageSchema, updateUserSchema } from "../../validation";
+import bcrypt from "bcryptjs";
+import { deleteRequestModel } from "../../database";
+
+export const getAllUsers = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = getAllUsersSchema.validate(req.query);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const user = req.headers.user;
+
+        const { page, limit, search, roleFilter, isVerified, isDeleted } = value;
+
+        const query: any = { isDeleted: isDeleted };
+
+        if (user.role === ROLES.USER) {
+            query._id = user._id;
+        }
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: "si" } },
+                { surname: { $regex: search, $options: "si" } },
+                { fatherName: { $regex: search, $options: "si" } },
+            ];
+        }
+
+        if (roleFilter) {
+            query.role = { $in: roleFilter };
+        }
+
+        if (isVerified) {
+            query.isVerified = isVerified;
+        }
+
+        const skip = (page - 1) * limit;
+
+        const users = await findAllWithPopulate(userModel, query, {}, { skip, limit }, [{ path: "batchId", select: "name" }]);
+        const totalUsers = await countData(userModel, query);
+
+        // remove password and other sensitive data
+        const usersData = users.map((user: any) => {
+            const { password, activeSessions, ...data } = user;
+            return data;
+        });
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Users fetched successfully", {
+            users: usersData,
+            state: {
+                page,
+                limit,
+                totalPages: Math.ceil(totalUsers / limit),
+            },
+            totalData: totalUsers,
+        }, {}));
+
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error fetching users", {}, error.message));
+    }
+};
+
+export const updateUser = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = updateUserSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const existingUser = await getFirstMatch(userModel, { _id: value.userId, isDeleted: false }, {}, {});
+        if (!existingUser) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        if (value.email) {
+            const isUserExist = await getFirstMatch(userModel, {
+                email: value.email,
+                isDeleted: false,
+                _id: { $ne: value.userId },
+            }, {}, {});
+            if (isUserExist) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, responseMessage.alreadyEmail, {}, {}));
+        }
+
+        const updatePayload = { ...value };
+        delete updatePayload.userId;
+
+        const addressIds = [];
+
+        if (
+            Array.isArray(updatePayload.addresses) &&
+            updatePayload.addresses.length > 0
+        ) {
+            for (const address of updatePayload.addresses) {
+                // UPDATE existing address
+                if (address.id) {
+                    const { id, ...updateData } = address;
+
+                    await updateData(addressModel, { _id: id }, updateData, {});
+
+                    addressIds.push(id);
+                }
+                // CREATE new address
+                else {
+                    const newAddress: any = await createData(addressModel, address);
+                    addressIds.push(newAddress._id);
+                }
+            }
+        }
+
+        // assign ids only
+        updatePayload.addressIds = addressIds;
+
+        delete updatePayload.addresses;
+
+        updatePayload.educations = updatePayload.education;
+        delete updatePayload.education;
+
+        if (updatePayload.studyId) {
+            if (updatePayload.studyId) {
+                await updateData(studyDetailsModel, { _id: updatePayload.studyId }, { classes: updatePayload.study }, {});
+            } else {
+                const studyData = await createData(studyDetailsModel, { classes: updatePayload.study });
+                updatePayload.studyId = studyData._id;
+            }
+        }
+
+        const updatedUser = await updateData(userModel, { _id: value.userId }, updatePayload, {});
+
+        const user = await findOneAndPopulate(userModel, { _id: value.userId }, {}, {}, [{ path: "batchId", select: "name" }, { path: "addressIds" }, { path: "studyId" }]);
+
+        const { password, activeSessions, ...rest } = user;
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, responseMessage?.updateDataSuccess("User"), rest, {}));
+
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, responseMessage?.internalServerError, {}, error.message));
+    }
+};
+
+export const updateImage = async (req, res) => {
+    reqInfo(req);
+    try {
+        const { error, value } = updateImageSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const existingUser = await getFirstMatch(userModel, { _id: value.userId, isDeleted: false }, {}, {});
+        if (!existingUser) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        if (existingUser.image && existingUser.image !== value.image) {
+            deleteFile(existingUser.image);
+        }
+
+        const updatedUser = await updateData(userModel, { _id: value.userId }, { image: value.image }, {});
+
+        const { password, activeSessions, ...rest } = updatedUser;
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Image updated successfully", rest, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error updating image", {}, error.message));
+    }
+};
+
+export const deleteUser = async (req, res) => {
+    try {
+        const { error, value } = deleteUserSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const existingUser = await getFirstMatch(userModel, { _id: value.userId, isDeleted: false }, {}, {});
+        if (!existingUser) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        if (existingUser.email !== value.email)
+            return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Invalid email", {}, {}));
+
+        const isPasswordValid = await bcrypt.compare(value.password, existingUser.password);
+        if (!isPasswordValid)
+            return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Invalid password", {}, {}));
+
+        const isDeleteRequestExist = await getFirstMatch(deleteRequestModel, { userId: value.userId, status: DELETE_REQUEST_STATUS.PENDING }, {}, {});
+        if (isDeleteRequestExist)
+            return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Delete request already exists", {}, {}));
+
+        const deleteRequest = await createData(deleteRequestModel, { userId: value.userId });
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "User delete request sent successfully", deleteRequest, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error deleting user", {}, error.message));
+    }
+};
+
+export const getUserById = async (req, res) => {
+    try {
+        const { error, value } = getUserByIdSchema.validate(req.params);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const existingUser = await getFirstMatch(userModel, { _id: value.id, isDeleted: false }, {}, {});
+        if (!existingUser) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "User fetched successfully", existingUser, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error fetching user", {}, error.message));
+    }
+};

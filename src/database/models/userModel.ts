@@ -1,0 +1,56 @@
+import mongoose from "mongoose";
+import { addressModelName, batchModelName, CLASS, GENDER, ROLES, studyDetailsModelName, userModelName } from "../../common";
+
+const classDetailsSchema = new mongoose.Schema({
+    class: { type: String, enum: Object.values(CLASS), default: CLASS.TEN },
+    isStudded: { type: Boolean, default: false },
+    branch: { type: String },
+    passingYear: { type: String },
+    medium: { type: String },
+    hostel: { type: Boolean, default: false },
+})
+
+const userSchema = new mongoose.Schema({
+    // login info
+    email: { type: String },
+    password: { type: String },
+
+    // basic info
+    name: { type: String },
+    fatherName: { type: String },
+    surname: { type: String },
+    phoneNumber: { type: String },
+    whatsappNumber: { type: String },
+    gender: { type: String, enum: Object.values(GENDER), default: GENDER.MALE },
+    hrNo: { type: String },
+    role: { type: String, enum: Object.values(ROLES), default: ROLES.USER },
+    currentCity: { type: String },
+    addressIds: [{ type: mongoose.Schema.Types.ObjectId, ref: addressModelName }],
+
+    // personal info
+    occupation: { type: String },
+    professions: [{ type: String }],
+    educations: [{ type: String }],
+    image: { type: String },
+    maritalStatus: { type: String },
+    bloodGroup: { type: String },
+
+    // academic info
+    class10: classDetailsSchema,
+    class12: classDetailsSchema,
+    studyId: { type: mongoose.Schema.Types.ObjectId, ref: studyDetailsModelName },
+    skill: { type: String },
+    hoddies: { type: String },
+    talents: [{ type: String }],
+    awards: [{ type: String }],
+
+    // other info
+    isDeleted: { type: Boolean, default: false },
+    otp: { type: String, default: "" },
+    token: { type: String, default: "" },
+    isVerified: { type: Boolean, default: false },
+    batchId: { type: mongoose.Schema.Types.ObjectId, ref: batchModelName },
+    activeSessions: [{ token: { type: String }, createdAt: { type: Date, default: Date.now } }],
+}, { timestamps: true, versionKey: false })
+
+export const userModel = mongoose.model(userModelName, userSchema);

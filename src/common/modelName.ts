@@ -1,0 +1,17 @@
+export const userModelName = "user";
+export const addressModelName = "address";
+export const studyDetailsModelName = "studyDetail";
+export const attendanceModelName = "attendance";
+export const batchModelName = "batch";
+export const groupModelName = "group";
+export const monitorModelName = "monitor";
+export const programModelName = "program";
+export const anubhutiModelName = "anubhuti";
+export const deleteRequestModelName = "deleteRequest";
+export const familyModelName = "family";
+export const feedbackModelName = "feedback";
+export const legalityModelName = "legality";
+export const lifeLightModelName = "lifeLight";
+export const settingModelName = "setting";
+export const tithiCalenderModelName = "tithiCalender";
+export const bannerModelName = "banner";

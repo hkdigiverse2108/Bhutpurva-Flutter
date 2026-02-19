@@ -1,0 +1,294 @@
+import { apiResponse, batchModelName, commonIdSchema, monitorModelName, ROLES, STATUS_CODE, userModelName } from "../../common";
+import { batchModel, userModel } from "../../database";
+import { monitorModel } from "../../database";
+import { countData, createData, findAllWithPopulate, findOneAndPopulate, getFirstMatch, updateData, reqInfo } from "../../helper";
+import { addDevoteeSchema, assignDevoteeSchema, createBatchSchema, createMonitorSchema, getBatchsSchema, getMonitorSchema, removeDevoteeSchema, unassignDevoteeSchema, updateBatchSchema } from "../../validation"
+
+export const createBatch = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = createBatchSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const batch = await createData(batchModel, value);
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Batch created successfully", batch, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error creating batch", {}, error.message));
+    }
+}
+
+export const updateBatch = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = updateBatchSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const batch = await updateData(batchModel, { _id: value.batchId, isDeleted: false }, { name: value.name }, { new: true });
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Batch updated successfully", batch, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error updating batch", {}, error.message));
+    }
+}
+
+export const deleteBatch = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = commonIdSchema.validate(req.params);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const batch = await updateData(batchModel, { _id: value.id, isDeleted: false }, { isDeleted: true }, { new: true });
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Batch deleted successfully", batch, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error deleting batch", {}, error.message));
+    }
+}
+
+export const getBatches = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = getBatchsSchema.validate(req.query);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const query: any = {
+            isDeleted: false
+        }
+
+        if (value.search)
+            query.name = { $regex: value.search, $options: "si" };
+
+        if (value.groupFilter)
+            query.group = value.groupFilter;
+
+        const skip = (value.page - 1) * value.limit;
+
+        const batch = await findAllWithPopulate(batchModel, query, { _id: 1, name: 1, group: 1, createdAt: 1 }, { skip, limit: value.limit }, { path: monitorModelName, select: "_id name" });
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        const total = await countData(batchModel, query);
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Batch fetched successfully", {
+            batch,
+            state: {
+                page: value.page,
+                limit: value.limit,
+                totalPages: Math.ceil(total / value.limit),
+            },
+            totalData: total
+        }, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error getting batch", {}, error.message));
+    }
+};
+
+export const getBatchById = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = commonIdSchema.validate(req.params);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const batch = await findOneAndPopulate(batchModel, { _id: value.id, isDeleted: false }, { _id: 1, name: 1, group: 1, createdAt: 1 }, {}, { path: monitorModelName, select: "_id name" });
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Batch fetched successfully", batch, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error getting batch", {}, error.message));
+    }
+};
+
+export const addDevoteeToBatch = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = addDevoteeSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const batch = await getFirstMatch(batchModel, { _id: value.batchId, isDeleted: false }, {}, {});
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        const user = await updateData(userModel, { _id: value.devoteeId, isDeleted: false }, { batch: value.batchId }, { new: true });
+        if (!user) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        const payload = {
+            batch: value.batchId,
+            user: value.devoteeId,
+        }
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Devotee added to batch successfully", payload, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error adding devotee to batch", {}, error.message));
+    }
+};
+
+export const removeDevoteeFromBatch = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = removeDevoteeSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const batch = await getFirstMatch(batchModel, { _id: value.batchId, isDeleted: false }, {}, {});
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        const user = await updateData(userModel, { _id: value.devoteeId, isDeleted: false }, { batch: null }, { new: true });
+        if (!user) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        const payload = {
+            batch: value.batchId,
+            user: value.devoteeId,
+        }
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Devotee removed from batch successfully", payload, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error removing devotee from batch", {}, error.message));
+    }
+};
+
+export const createMonitor = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = createMonitorSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const user = await getFirstMatch(userModel, { _id: value.userId, isDeleted: false }, {}, {});
+        if (!user) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        if (user.batchId != value.batchId) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User is not in this batch", {}, {}));
+
+        const isMonitor = await getFirstMatch(monitorModel, { userId: value.userId, isDeleted: false }, {}, {});
+        if (isMonitor) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User is already a monitor", {}, {}));
+
+        const monitor = await createData(monitorModel, { batch: value.batchId, user: value.userId });
+
+        const batch = await updateData(batchModel, { _id: value.batchId }, { $push: { monitorIds: monitor._id } }, { new: true });
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        const updatedUser = await updateData(userModel, { _id: value.userId }, { role: ROLES.MONITOR }, { new: true });
+        if (!updatedUser) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Monitor created successfully", {
+            monitor: monitor,
+        }, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error creating monitor", {}, error.message));
+    }
+};
+
+export const removeMonitor = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = commonIdSchema.validate(req.params);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const monitor = await getFirstMatch(monitorModel, { _id: value.id, isDeleted: false }, {}, {});
+        if (!monitor) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Monitor not found", {}, {}));
+
+        const batch = await updateData(batchModel, { _id: monitor.batchId }, { $pull: { monitorIds: monitor._id } }, { new: true });
+        if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
+
+        const updatedUser = await updateData(userModel, { _id: monitor.userId }, { role: ROLES.USER }, { new: true });
+        if (!updatedUser) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "User not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Monitor removed successfully", {
+            monitor: monitor,
+        }, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error removing monitor", {}, error.message));
+    }
+};
+
+export const assignDevotee = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = assignDevoteeSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const monitor = await updateData(monitorModel, { _id: value.monitorId }, { $addToSet: { devoteeIds: { $each: value.devoteeIds } } }, { new: true });
+        if (!monitor) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Monitor not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Devotee assigned to batch successfully", monitor, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error assigning devotee", {}, error.message));
+    }
+};
+
+export const unassignDevotee = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = unassignDevoteeSchema.validate(req.body);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const monitor = await updateData(monitorModel, { _id: value.monitorId }, { $pull: { devoteeIds: { $each: value.devoteeIds } } }, { new: true });
+        if (!monitor) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Monitor not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Devotee unassigned from batch successfully", monitor, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error unassigning devotee", {}, error.message));
+    }
+};
+
+export const getMonitors = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = getMonitorSchema.validate(req.query);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const { page, limit, batchFilter } = value;
+
+        const criteria: any = {
+            isDeleted: false,
+        };
+
+        if (batchFilter) {
+            criteria.batchId = batchFilter;
+        }
+
+        const skip = (page - 1) * limit;
+
+        const monitors = await findAllWithPopulate(monitorModel, criteria, {}, { skip: skip, limit: limit }, [{ path: userModelName, select: "name email" }, { path: batchModelName, select: "name" }]);
+        if (!monitors) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Monitors not found", {}, {}));
+
+        const total = await countData(monitorModel, criteria);
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Monitors fetched successfully", {
+            monitors,
+            state: {
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+            totalData: total
+        }, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error getting monitors", {}, error.message));
+    }
+};
+
+export const getMonitorById = async (req, res) => {
+    reqInfo(req)
+    try {
+        const { error, value } = commonIdSchema.validate(req.params);
+        if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
+
+        const monitor = await findOneAndPopulate(monitorModel, { _id: value.id, isDeleted: false }, {}, {}, [{ path: "devoteeIds", select: "name email" }, { path: "batchId", select: "name" }]);
+        if (!monitor) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Monitor not found", {}, {}));
+
+        return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Monitor fetched successfully", monitor, {}));
+    } catch (error) {
+        console.error(error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Error getting monitor", {}, error.message));
+    }
+};
