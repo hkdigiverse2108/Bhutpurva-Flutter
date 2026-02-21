@@ -1,22 +1,22 @@
 "use strict"
 import { Router } from "express";
 import { verifyToken } from "../helper";
-import authRouter from "./authRouter";
-import userRouter from "./userRouter";
-import batchRouter from "./batchRouter";
-import groupRouter from "./groupRouter";
-import programRouter from "./programRouter";
-import attendanceRouter from "./attendanceRouter";
-import anubhutiRouter from "./anubhutiRouter";
-import deleteRequestRouter from "./deleteRequestRouter";
-import familyRouter from "./familyRouter";
-import feedbackRouter from "./feedbackRouter";
-import legalityRouter from "./legalityRouter";
-import lifeLightRouter from "./lifeLightRouter";
-import uploadRouter from "./uploadRouter";
-import settingRouter from "./settingRouter";
-import tithiCalenderRouter from "./tithiCalenderRouter";
-import bannerRouter from "./bannerRouter";
+import authRouter from "./auth";
+import userRouter from "./user";
+import batchRouter from "./batch";
+import groupRouter from "./group";
+import programRouter from "./program";
+import attendanceRouter from "./attendance";
+import anubhutiRouter from "./anubhuti";
+import deleteRequestRouter from "./deleteRequest";
+import familyRouter from "./family";
+import feedbackRouter from "./feedback";
+import legalityRouter from "./legality";
+import lifeLightRouter from "./lifeLight";
+import uploadRouter from "./upload";
+import settingRouter from "./setting";
+import tithiCalenderRouter from "./tithiCalender";
+import bannerRouter from "./banner";
 
 
 const router = Router();

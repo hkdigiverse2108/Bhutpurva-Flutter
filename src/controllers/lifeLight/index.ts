@@ -1,5 +1,5 @@
 import { apiResponse, commonIdSchema, STATUS_CODE } from "../../common";
-import { lifeLightModel } from "../../database/models/lifeLightModel";
+import { lifeLightModel } from "../../database/models/lifeLight";
 import { countData, createData, findAllWithPopulate, getData, updateData } from "../../helper";
 import { addLifeLightSchema, getLifeLightSchema, updateLifeLightSchema } from "../../validation"
 

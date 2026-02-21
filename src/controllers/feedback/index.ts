@@ -1,6 +1,6 @@
 import { apiResponse, commonIdSchema, STATUS_CODE } from "../../common";
 import { userModel } from "../../database";
-import { feedbackModel } from "../../database/models/feedbackModel";
+import { feedbackModel } from "../../database/models/feedback";
 import { countData, createData, findAllWithPopulate, getFirstMatch, updateData } from "../../helper";
 import { feedbackSchema, getFeedbackSchema } from "../../validation";
 

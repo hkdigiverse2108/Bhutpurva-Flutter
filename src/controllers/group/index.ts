@@ -86,7 +86,7 @@ export const getGroups = async (req, res) => {
 
         const skip = (value.page - 1) * value.limit;
 
-        const groups = await findAllWithPopulate(groupModel, query, {}, { skip, limit: value.limit }, [{ path: 'leaders', select: "name fatherName surname phoneNumber whatsappNumber" }]);
+        const groups = await findAllWithPopulate(groupModel, query, {}, { skip, limit: value.limit }, [{ path: 'leaderIds', select: "name fatherName surname phoneNumber whatsappNumber" }]);
 
         const total = await countData(groupModel, query);
 

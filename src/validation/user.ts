@@ -1,6 +1,6 @@
 import joi from "joi";
 import { ADDRESS_TYPE, commonIdSchema, GENDER, objectId, ROLES } from "../common";
-import { addressSchema, classDetailsSchema, classSchema } from "./";
+import { addressSchema, classDetailsSchema, classSchema } from ".";
 
 export const getAllUsersSchema = joi.object({
     page: joi.number().optional().default(1),

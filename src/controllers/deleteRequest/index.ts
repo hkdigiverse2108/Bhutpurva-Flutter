@@ -1,5 +1,5 @@
 import { apiResponse, STATUS_CODE } from "../../common";
-import { deleteRequestModel } from "../../database/models/deleteRequestModel";
+import { deleteRequestModel } from "../../database/models/deleteRequest";
 import { countData, findAllWithPopulate, updateData } from "../../helper";
 import { getDeleteRequestSchema, updateDeleteRequestSchema } from "../../validation";
 
