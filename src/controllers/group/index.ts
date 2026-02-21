@@ -81,8 +81,11 @@ export const getGroups = async (req, res) => {
         if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
 
         const query: any = { isDeleted: false };
-        if (value.search)
+        if (value.search && value.search != "")
             query.name = { $regex: value.search, $options: "si" };
+
+        if (value.isActive != null && value.isActive != undefined)
+            query.isActive = value.isActive;
 
         const skip = (value.page - 1) * value.limit;
 
@@ -111,8 +114,11 @@ export const getGroupById = async (req, res) => {
         const { error, value } = commonIdSchema.validate(req.params);
         if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
 
-        const group = await findOneAndPopulate(groupModel, { _id: value.id }, {}, {}, [{ path: 'leaders', select: "name fatherName surname phoneNumber whatsappNumber" }]);
+        const group: any = await findOneAndPopulate(groupModel, { _id: value.id }, {}, {}, [{ path: 'leaderIds', select: "name fatherName surname phoneNumber whatsappNumber" }]);
         if (!group) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Group not found", {}, {}));
+
+        const batches = await getData(batchModel, { groupId: group._id, isDeleted: false }, {}, {});
+        group.batches = batches;
 
         return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Group fetched successfully", group, {}));
     } catch (error) {

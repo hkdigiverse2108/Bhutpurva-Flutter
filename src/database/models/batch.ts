@@ -5,6 +5,7 @@ const batchSchema = new mongoose.Schema({
     name: { type: String },
     groupId: { type: mongoose.Schema.Types.ObjectId, ref: groupModelName },
     monitorIds: [{ type: mongoose.Schema.Types.ObjectId, ref: userModelName }],
+    isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false })
 

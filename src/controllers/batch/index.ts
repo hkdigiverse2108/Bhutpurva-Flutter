@@ -24,7 +24,11 @@ export const updateBatch = async (req, res) => {
         const { error, value } = updateBatchSchema.validate(req.body);
         if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
 
-        const batch = await updateData(batchModel, { _id: value.batchId, isDeleted: false }, { name: value.name }, { new: true });
+        const updatePayload: any = {};
+        if (value.name !== undefined) updatePayload.name = value.name;
+        if (value.isActive !== undefined) updatePayload.isActive = value.isActive;
+
+        const batch = await updateData(batchModel, { _id: value.batchId, isDeleted: false }, updatePayload, { new: true });
         if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
 
         return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Batch updated successfully", batch, {}));
@@ -66,9 +70,12 @@ export const getBatches = async (req, res) => {
         if (value.groupFilter)
             query.group = value.groupFilter;
 
+        if (value.isActive != null && value.isActive !== undefined)
+            query.isActive = value.isActive;
+
         const skip = (value.page - 1) * value.limit;
 
-        const batch = await findAllWithPopulate(batchModel, query, { _id: 1, name: 1, group: 1, createdAt: 1 }, { skip, limit: value.limit }, { path: monitorModelName, select: "_id name" });
+        const batch = await findAllWithPopulate(batchModel, query, { _id: 1, name: 1, group: 1, isActive: 1, createdAt: 1 }, { skip, limit: value.limit }, { path: "monitorIds", select: "_id name" });
         if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
 
         const total = await countData(batchModel, query);
@@ -94,7 +101,7 @@ export const getBatchById = async (req, res) => {
         const { error, value } = commonIdSchema.validate(req.params);
         if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
 
-        const batch = await findOneAndPopulate(batchModel, { _id: value.id, isDeleted: false }, { _id: 1, name: 1, group: 1, createdAt: 1 }, {}, { path: monitorModelName, select: "_id name" });
+        const batch = await findOneAndPopulate(batchModel, { _id: value.id, isDeleted: false }, { _id: 1, name: 1, group: 1, isActive: 1, createdAt: 1 }, {}, { path: "monitorIds", select: "_id name" });
         if (!batch) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Batch not found", {}, {}));
 
         return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Batch fetched successfully", batch, {}));
@@ -257,7 +264,7 @@ export const getMonitors = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        const monitors = await findAllWithPopulate(monitorModel, criteria, {}, { skip: skip, limit: limit }, [{ path: userModelName, select: "name email" }, { path: batchModelName, select: "name" }]);
+        const monitors = await findAllWithPopulate(monitorModel, criteria, {}, { skip: skip, limit: limit }, [{ path: userModelName, select: "name email" }, { path: batchModelName, select: "name isActive" }]);
         if (!monitors) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Monitors not found", {}, {}));
 
         const total = await countData(monitorModel, criteria);
@@ -283,7 +290,7 @@ export const getMonitorById = async (req, res) => {
         const { error, value } = commonIdSchema.validate(req.params);
         if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
 
-        const monitor = await findOneAndPopulate(monitorModel, { _id: value.id, isDeleted: false }, {}, {}, [{ path: "devoteeIds", select: "name email" }, { path: "batchId", select: "name" }]);
+        const monitor = await findOneAndPopulate(monitorModel, { _id: value.id, isDeleted: false }, {}, {}, [{ path: "devoteeIds", select: "name email" }, { path: "batchId", select: "name isActive" }]);
         if (!monitor) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Monitor not found", {}, {}));
 
         return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Monitor fetched successfully", monitor, {}));

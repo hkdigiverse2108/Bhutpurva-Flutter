@@ -3,11 +3,13 @@ import { objectId } from "../common";
 
 export const createBatchSchema = joi.object({
     name: joi.string().required(),
+    isActive: joi.boolean().optional(),
 });
 
 export const updateBatchSchema = joi.object({
     batchId: objectId().required(),
     name: joi.string().optional(),
+    isActive: joi.boolean().optional(),
 });
 
 export const getBatchsSchema = joi.object({
@@ -15,6 +17,7 @@ export const getBatchsSchema = joi.object({
     limit: joi.number().optional(),
     search: joi.string().allow("", null).optional(),
     groupFilter: joi.string().allow("", null).optional(),
+    isActive: joi.boolean().optional(),
 });
 
 export const addDevoteeSchema = joi.object({

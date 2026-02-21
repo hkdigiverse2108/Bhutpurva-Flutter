@@ -1,11 +1,8 @@
-import { findOneAndPopulate } from './../../helper/database-service';
-import { date } from "joi";
 import { apiResponse, DELETE_REQUEST_STATUS, ROLES, STATUS_CODE } from "../../common";
-import { addressModel, studyDetailsModel, userModel } from "../../database";
-import { countData, createData, findAllWithPopulate, getFirstMatch, reqInfo, responseMessage, updateData, deleteFile } from "../../helper";
+import { addressModel, studyDetailsModel, userModel, deleteRequestModel } from "../../database";
+import { countData, createData, findAllWithPopulate, findOneAndPopulate, getFirstMatch, reqInfo, responseMessage, updateData, deleteFile } from "../../helper";
 import { deleteUserSchema, getAllUsersSchema, getUserByIdSchema, updateImageSchema, updateUserSchema } from "../../validation";
 import bcrypt from "bcryptjs";
-import { deleteRequestModel } from "../../database";
 
 export const getAllUsers = async (req, res) => {
     reqInfo(req)
@@ -33,6 +30,8 @@ export const getAllUsers = async (req, res) => {
 
         if (roleFilter) {
             query.role = { $in: roleFilter };
+        } else {
+            query.role = { $ne: ROLES.ADMIN }
         }
 
         if (isVerified) {
@@ -41,7 +40,7 @@ export const getAllUsers = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        const users = await findAllWithPopulate(userModel, query, {}, { skip, limit }, [{ path: "batchId", select: "name" }]);
+        const users = await findAllWithPopulate(userModel, query, {}, { skip, limit }, [{ path: "batchId", select: "name isActive" }, { path: "addressIds" }, { path: "studyId" }]);
         const totalUsers = await countData(userModel, query);
 
         // remove password and other sensitive data
@@ -129,7 +128,7 @@ export const updateUser = async (req, res) => {
 
         const updatedUser = await updateData(userModel, { _id: value.userId }, updatePayload, {});
 
-        const user = await findOneAndPopulate(userModel, { _id: value.userId }, {}, {}, [{ path: "batchId", select: "name" }, { path: "addressIds" }, { path: "studyId" }]);
+        const user = await findOneAndPopulate(userModel, { _id: value.userId }, {}, {}, [{ path: "batchId", select: "name isActive" }, { path: "addressIds" }, { path: "studyId" }]);
 
         const { password, activeSessions, ...rest } = user;
 

@@ -79,7 +79,7 @@ export const getPrograms = async (req, res) => {
 
         const skip = (value.page - 1) * value.limit;
 
-        const programs = await findAllWithPopulate(programModel, query, {}, { skip, limit: value.limit }, [{ path: "batchId", select: "name" }]);
+        const programs = await findAllWithPopulate(programModel, query, {}, { skip, limit: value.limit }, [{ path: "batchId", select: "name isActive" }]);
 
         const totalCount = await countData(programModel, query);
 
@@ -104,7 +104,7 @@ export const getProgramById = async (req, res) => {
         const { error, value } = commonIdSchema.validate(req.params);
         if (error) return res.status(STATUS_CODE.BAD_REQUEST).json(new apiResponse(STATUS_CODE.BAD_REQUEST, "Validation error", {}, error.details[0].message));
 
-        const program = await findOneAndPopulate(programModel, { _id: value.id }, {}, {}, [{ path: "batchId", select: "name" }]);
+        const program = await findOneAndPopulate(programModel, { _id: value.id }, {}, {}, [{ path: "batchId", select: "name isActive" }]);
 
         return res.status(STATUS_CODE.SUCCESS).json(new apiResponse(STATUS_CODE.SUCCESS, "Program fetched successfully", program, {}));
     } catch (error) {
