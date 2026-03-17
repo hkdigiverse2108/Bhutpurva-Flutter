@@ -42,7 +42,7 @@ class ApiService extends GetxService {
 
     headers ??= {};
     final token = _getToken();
-    log(token.toString());
+    // log(token.toString());
     if (token != null && token.isNotEmpty) headers['authorization'] = token;
 
     Uri url = Uri.parse('$baseUrl$endpoint');

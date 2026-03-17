@@ -30,7 +30,7 @@ class AssignedDetails extends GetView<AssignedDetailsController> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).shadowColor.withOpacity(0.1),
+                    color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
                     blurRadius: 6,
                     offset: const Offset(0, 4),
                   ),

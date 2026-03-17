@@ -270,7 +270,7 @@ class CommonTextFormField extends StatelessWidget {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               elevation: 2,
-                              shadowColor: Colors.black.withOpacity(0.05),
+                              shadowColor: Colors.black.withValues(alpha: 0.05),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () {

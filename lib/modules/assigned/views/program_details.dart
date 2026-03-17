@@ -47,7 +47,10 @@ class ProgramDetails extends GetView<ProgramDetailsController> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+            ),
           ],
         ),
         child: Theme(
@@ -82,7 +85,10 @@ class ProgramDetails extends GetView<ProgramDetailsController> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+              ),
             ],
           ),
           padding: const EdgeInsets.all(12),
@@ -137,7 +143,10 @@ class ProgramDetails extends GetView<ProgramDetailsController> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
         ],
       ),
       child: Column(
@@ -284,7 +293,7 @@ class _ScannerOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final overlayPaint = Paint()..color = Colors.black.withOpacity(0.75);
+    final overlayPaint = Paint()..color = Colors.black.withValues(alpha: 0.75);
 
     // IMPORTANT: create offscreen layer
     canvas.saveLayer(Offset.zero & size, Paint());

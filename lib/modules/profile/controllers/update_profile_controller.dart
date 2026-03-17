@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
@@ -182,12 +181,13 @@ class UpdateProfileController extends GetxController {
 
     // Normalize Gender
     final userGender = user.gender?.toLowerCase() ?? 'male';
-    if (userGender == 'female')
+    if (userGender == 'female') {
       gender.value = 'Female';
-    else if (userGender == 'other')
+    } else if (userGender == 'other') {
       gender.value = 'Other';
-    else
+    } else {
       gender.value = 'Male';
+    }
 
     if (user.createdAt != null) {
       // Assuming createdAt is not DOB, but using it as placeholder for now if DOB is missing in model
