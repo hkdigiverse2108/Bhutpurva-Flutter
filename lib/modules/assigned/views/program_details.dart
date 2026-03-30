@@ -14,7 +14,6 @@ class ProgramDetails extends GetView<ProgramDetailsController> {
   @override
   Widget build(BuildContext context) {
     final program = controller.program;
-    final hasDate = program.date != null;
 
     return Scaffold(
       appBar: AppBar(

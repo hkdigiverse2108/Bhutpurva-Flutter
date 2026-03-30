@@ -14,6 +14,8 @@ class MyDetails extends GetView<MyDetailsController> {
 
   @override
   Widget build(BuildContext context) {
+    final user = controller.storage.user;
+
     return Scaffold(
       appBar: AppBar(title: const Text('My Details')),
       backgroundColor: AppColors.primaryBackground,
@@ -22,10 +24,10 @@ class MyDetails extends GetView<MyDetailsController> {
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
-              child: const MemberTile(
-                imageUrl: '',
-                name: 'KARTIK KAMALESH BHAI\nGONDALIYA',
-                phoneNumber: '919106360330',
+              child: MemberTile(
+                imageUrl: user.image ?? '',
+                name: '${user.name ?? ''} ${user.fatherName ?? ''}\n${user.surname ?? ''}',
+                phoneNumber: user.phoneNumber ?? '',
                 isMainUser: true,
               ),
             ),
@@ -40,12 +42,15 @@ class MyDetails extends GetView<MyDetailsController> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: AppButton(
-          title: 'Save & Submit',
-          backgroundColor: AppColors.primary,
-          textColor: AppColors.white,
-          borderColor: AppColors.primary,
-          onTap: () {},
+        child: Obx(
+          () => AppButton(
+            title: 'Save & Submit',
+            isLoading: controller.isLoading.value,
+            backgroundColor: AppColors.primary,
+            textColor: AppColors.white,
+            borderColor: AppColors.primary,
+            onTap: controller.saveDetails,
+          ),
         ),
       ),
     );

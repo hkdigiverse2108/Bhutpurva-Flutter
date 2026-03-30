@@ -15,6 +15,7 @@ class ApiConstants {
   }
 
   // Auth
+  static const google = "/auth/google-login";
   static const register = "/auth/register";
   static const sendOtp = "/auth/send-otp";
   static const verifyOtp = "/auth/verify-otp";

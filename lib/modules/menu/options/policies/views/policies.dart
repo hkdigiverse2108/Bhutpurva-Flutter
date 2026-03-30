@@ -65,10 +65,9 @@ class Policies extends GetView<PoliciesController> {
 }
 
 class _PolicyCard extends StatelessWidget {
-  final String? title;
   final String content;
 
-  const _PolicyCard({this.title, required this.content});
+  const _PolicyCard({required this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -90,20 +89,6 @@ class _PolicyCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// TITLE
-            if (title != null)
-              Center(
-                child: Text(
-                  title!,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-            if (title != null) const SizedBox(height: 20),
-
             /// CONTENT
             HtmlWidget(
               content,

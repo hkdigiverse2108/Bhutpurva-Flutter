@@ -79,15 +79,18 @@ class Login extends GetView<LoginController> {
                           const SizedBox(height: AppSize.xl),
 
                           // 🔹 Google Sign In (Secondary)
-                          _AuthButton(
-                            icon: PhosphorIconsBold.googleLogo,
-                            title: 'Sign in with Google',
-                            backgroundColor: AppColors.white,
-                            textColor: AppColors.textPrimary,
-                            borderColor: AppColors.borderPrimary,
-                            onTap: () {
-                              controller.navigateToNavigation();
-                            },
+                          Obx(
+                            () => _AuthButton(
+                              icon: PhosphorIconsBold.googleLogo,
+                              title: 'Sign in with Google',
+                              backgroundColor: AppColors.white,
+                              textColor: AppColors.textPrimary,
+                              borderColor: AppColors.borderPrimary,
+                              isLoading: controller.isGoogleLoading.value,
+                              onTap: () {
+                                controller.loginWithGoogle();
+                              },
+                            ),
                           ),
 
                           const SizedBox(height: AppSize.lg),
@@ -129,7 +132,7 @@ class Login extends GetView<LoginController> {
                                     ?.copyWith(color: AppColors.textSecondary),
                                 children: [
                                   TextSpan(
-                                    text: 'Terms & Conditions', 
+                                    text: 'Terms & Conditions',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: AppColors.primary,
@@ -189,6 +192,7 @@ class _AuthButton extends StatelessWidget {
   final Color textColor;
   final Color? borderColor;
   final VoidCallback onTap;
+  final bool isLoading;
 
   const _AuthButton({
     required this.icon,
@@ -197,6 +201,7 @@ class _AuthButton extends StatelessWidget {
     required this.textColor,
     this.borderColor,
     required this.onTap,
+    this.isLoading = false,
   });
 
   @override
@@ -205,7 +210,7 @@ class _AuthButton extends StatelessWidget {
       width: double.infinity,
       height: AppSize.buttonHeight,
       child: OutlinedButton(
-        onPressed: onTap,
+        onPressed: isLoading ? null : onTap,
         style: OutlinedButton.styleFrom(
           backgroundColor: backgroundColor,
           side: borderColor != null
@@ -215,21 +220,30 @@ class _AuthButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSize.buttonRadius),
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: textColor),
-            const SizedBox(width: AppSize.sm),
-            Text(
-              title,
-              style: TextStyle(
-                color: textColor,
-                fontSize: AppSize.fontSizeMd,
-                fontWeight: FontWeight.w500,
+        child: isLoading
+            ? SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: textColor,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: textColor),
+                  const SizedBox(width: AppSize.sm),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: AppSize.fontSizeMd,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

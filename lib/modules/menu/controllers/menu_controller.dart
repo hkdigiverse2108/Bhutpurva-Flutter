@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gurukul_bhutpurva/app/app_routes.dart';
 import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
+import 'package:gurukul_bhutpurva/core/constants/app_colors.dart';
 import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
 import 'package:gurukul_bhutpurva/data/models/res/res_model.dart';
 import 'package:gurukul_bhutpurva/shared/global/global_ver.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -188,21 +190,128 @@ class MenusController extends GetxController {
     Get.toNamed(AppRoutes.policies);
   }
 
-  void logout() async {
+  void logout() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 🔴 ICON HEADER
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  PhosphorIconsFill.signOut,
+                  color: AppColors.error,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 📝 TEXT CONTENT
+              const Text(
+                'Logout?',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Are you sure you want to log out of your account?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // ⚡ ACTION BUTTONS
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Get.back(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back(); // close confirmation dialog
+                        _performLogout(); // start logout process
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _performLogout() async {
     // Show loading dialog
     Get.dialog(
-      const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Logging out...', style: TextStyle(fontSize: 16)),
-              ],
-            ),
+      Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(color: AppColors.primary),
+              const SizedBox(height: 20),
+              const Text(
+                'Logging out...',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -210,36 +319,33 @@ class MenusController extends GetxController {
     );
 
     try {
-      log(storage.token!);
-      final ResModel response = await apiSirvices.post(
-        ApiConstants.logout,
-        body: {},
-        headers: {'authorization': storage.token!},
-      );
+      if (storage.token != null) {
+        log(storage.token!);
+        await apiSirvices.post(
+          ApiConstants.logout,
+          body: {},
+          headers: {'authorization': storage.token!},
+        );
+      }
 
-      if (response.status == 200) {
-        // Remove current profile from the stored list
-        final currentIndex = storage.activeProfileIndex;
-        final remaining = await storage.removeProfile(currentIndex);
-        await storage.clearSession();
+      // Remove current profile from the stored list
+      final currentIndex = storage.activeProfileIndex;
+      final remaining = await storage.removeProfile(currentIndex);
+      await storage.clearSession();
 
-        Get.back(); // close dialog
+      if (Get.isDialogOpen ?? false) Get.back(); // close loading dialog
 
-        if (remaining > 0) {
-          // Switch to the first remaining profile and show picker
-          await storage.switchToProfile(0);
-          Get.offAllNamed(AppRoutes.switchProfile);
-        } else {
-          Get.offAllNamed(AppRoutes.login);
-        }
-        return;
+      if (remaining > 0) {
+        // Switch to the first remaining profile and show picker
+        await storage.switchToProfile(0);
+        Get.offAllNamed(AppRoutes.switchProfile);
+      } else {
+        Get.offAllNamed(AppRoutes.login);
       }
     } catch (e) {
       log(e.toString());
+      if (Get.isDialogOpen ?? false) Get.back();
+      AppSnackbar.error('Logout failed');
     }
-
-    // Close dialog on failure
-    if (Get.isDialogOpen ?? false) Get.back();
-    AppSnackbar.error('Logout failed');
   }
 }

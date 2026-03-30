@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
+import 'package:gurukul_bhutpurva/core/constants/enums.dart';
+import 'package:gurukul_bhutpurva/core/services/api_service.dart';
+import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
 import 'package:gurukul_bhutpurva/data/models/class/class_model.dart';
+import 'package:gurukul_bhutpurva/data/models/user/user_model.dart';
+import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class MyDetailsController extends GetxController {
+  final StorageService storage = Get.find<StorageService>();
+  final apiService = ApiService();
+
   final majorDetailsFormKey = GlobalKey<FormState>();
   final classDetailsFormKey = GlobalKey<FormState>();
 
   final tab = 0.obs;
+  final isLoading = false.obs;
 
   // Major Details
-  final hrNoController = TextEditingController(text: 'Major HR No');
+  final hrNoController = TextEditingController();
   final currentCity = 'select'.obs;
   final area = 'select'.obs;
   final tenTh = ClassModel().obs;
@@ -51,10 +61,115 @@ class MyDetailsController extends GetxController {
   void onInit() {
     final currentYear = DateTime.now().year;
     passingYears = List.generate(
-      currentYear - 1990 + 1,
+      currentYear - 1980 + 1,
       (index) => (currentYear - index).toString(),
     );
+    loadUserData();
     super.onInit();
+  }
+
+  void loadUserData() {
+    final user = storage.user;
+
+    hrNoController.text = user.hrNo ?? "";
+    currentCity.value = user.currentCity ?? "select";
+
+    // Map Class 10/12 Details
+    _mapToClassModel(user.class10, tenTh.value);
+    _mapToClassModel(user.class12, twelveTh.value);
+
+    // Map StudyId -> Classes (Optional based on backend schema)
+    if (user.studyId?.classes != null) {
+      final classes = user.studyId!.classes!;
+      _mapToClassModelFromStudy(classes.class1, class1.value);
+      _mapToClassModelFromStudy(classes.class10, class10.value);
+    }
+  }
+
+  void _mapToClassModel(Class12Class? data, ClassModel model) {
+    if (data == null) return;
+    model.isInGurukul.value = data.isStudded == true
+        ? ClassStatus.yes
+        : (data.isStudded == false ? ClassStatus.no : ClassStatus.notSelected);
+    model.branch.value = data.branch ?? "";
+    model.passingYear.value = data.passingYear ?? "";
+    model.medium.value = data.medium ?? "";
+    model.hostel.value = data.hostel == true
+        ? "hostel"
+        : (data.hostel == false ? "non hostel" : "not Selected");
+  }
+
+  // Helper for Class1Class from studyId
+  void _mapToClassModelFromStudy(Class1Class? data, ClassModel model) {
+    if (data == null) return;
+    model.isInGurukul.value = data.isStudied == true
+        ? ClassStatus.yes
+        : ClassStatus.no;
+    model.branch.value = data.branch ?? "";
+  }
+
+  Future<void> saveDetails() async {
+    if (!majorDetailsFormKey.currentState!.validate()) return;
+    if (!classDetailsFormKey.currentState!.validate()) return;
+
+    isLoading.value = true;
+    try {
+      final payload = {
+        "hrNo": hrNoController.text.trim(),
+        "currentCity": currentCity.value == "select" ? null : currentCity.value,
+        "class10": _mapToPayload(tenTh.value, "10"),
+        "class12": _mapToPayload(twelveTh.value, "12"),
+        "studyId": {
+          "classes": {
+            "class1": {
+              "isStudied": class1.value.isInGurukul.value == ClassStatus.yes,
+              "branch": class1.value.branch.value,
+            },
+            "class10": {
+              "isStudied": class10.value.isInGurukul.value == ClassStatus.yes,
+              "branch": class10.value.branch.value,
+            },
+            // Add other classes as needed based on backend requirements
+          },
+        },
+      };
+
+      final response = await apiService.post(
+        ApiConstants.updateUser,
+        body: payload,
+        headers: {'authorization': storage.token!},
+      );
+
+      if (response.success) {
+        // Update local session data
+        final updatedUser = UserModel.fromJson(response.data);
+        await storage.saveUser(updatedUser);
+
+        // Sync in profile list too
+        await storage.addProfile(storage.token!, updatedUser);
+
+        AppSnackbar.success("Profile updated successfully!");
+        Get.back();
+      } else {
+        AppSnackbar.error(response.message ?? "Update failed");
+      }
+    } catch (e) {
+      debugPrint("Update error: $e");
+      AppSnackbar.error("An unexpected error occurred");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Map<String, dynamic> _mapToPayload(ClassModel model, String classNo) {
+    return {
+      "class": classNo,
+      "isStudded": model.isInGurukul.value == ClassStatus.yes,
+      "branch": model.branch.value,
+      "passingYear": model.passingYear.value,
+      "medium": model.medium.value,
+      "hostel": model.hostel.value == "hostel",
+    };
   }
 
   void changeTab(int index) {
