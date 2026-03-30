@@ -1,7 +1,10 @@
+import 'dart:convert' show json;
+
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:gurukul_bhutpurva/core/constants/enums.dart';
 import 'package:gurukul_bhutpurva/data/models/settings/settings_model.dart';
+import 'package:gurukul_bhutpurva/data/models/user/stored_profile.dart';
 import 'package:gurukul_bhutpurva/data/models/user/user_model.dart';
 
 class StorageService extends GetxService {
@@ -93,6 +96,86 @@ class StorageService extends GetxService {
     return SettingsModel.fromRawJson(value ?? "{}");
   }
 
+  // ──────────────────────────────────────────────
+  // Multi-Profile Management
+  // ──────────────────────────────────────────────
+
+  /// Returns all locally stored profiles.
+  List<StoredProfile> get allProfiles {
+    final raw = read<String>(StorageKeys.profiles);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final List<dynamic> list = json.decode(raw);
+      return list.map((e) => StoredProfile.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Saves the full profiles list.
+  Future<void> _saveAllProfiles(List<StoredProfile> profiles) async {
+    final encoded = json.encode(profiles.map((p) => p.toJson()).toList());
+    await write(StorageKeys.profiles, encoded);
+  }
+
+  /// Index of the currently active profile in [allProfiles].
+  int get activeProfileIndex =>
+      read<int>(StorageKeys.activeProfileIndex) ?? 0;
+
+  /// Adds or updates a profile in the local list.
+  /// If a profile with the same user ID exists, it gets updated.
+  /// Returns the index of the added/updated profile.
+  Future<int> addProfile(String token, UserModel user) async {
+    final profiles = allProfiles;
+    final existingIndex = profiles.indexWhere(
+      (p) => p.user.id == user.id,
+    );
+
+    if (existingIndex >= 0) {
+      // Update existing profile
+      profiles[existingIndex] = StoredProfile(token: token, user: user);
+      await _saveAllProfiles(profiles);
+      return existingIndex;
+    } else {
+      // Add new profile
+      profiles.add(StoredProfile(token: token, user: user));
+      await _saveAllProfiles(profiles);
+      return profiles.length - 1;
+    }
+  }
+
+  /// Switches the active session to the profile at [index].
+  Future<void> switchToProfile(int index) async {
+    final profiles = allProfiles;
+    if (index < 0 || index >= profiles.length) return;
+
+    final profile = profiles[index];
+    await write(StorageKeys.activeProfileIndex, index);
+    await saveToken(profile.token);
+    await saveUser(profile.user);
+    await saveProfileType(profile.user.role ?? ProfileType.user);
+  }
+
+  /// Removes the profile at [index] from the stored list.
+  /// Returns the updated list length.
+  Future<int> removeProfile(int index) async {
+    final profiles = allProfiles;
+    if (index < 0 || index >= profiles.length) return profiles.length;
+
+    profiles.removeAt(index);
+    await _saveAllProfiles(profiles);
+
+    // Adjust active index
+    if (profiles.isEmpty) {
+      await remove(StorageKeys.activeProfileIndex);
+    } else {
+      final newIndex = index >= profiles.length ? profiles.length - 1 : index;
+      await write(StorageKeys.activeProfileIndex, newIndex);
+    }
+
+    return profiles.length;
+  }
+
   // App Settings
   String get language => read<String>(StorageKeys.language) ?? 'en';
 
@@ -116,4 +199,6 @@ class StorageKeys {
   static const onboardingDone = 'onboarding_done';
   static const profileType = 'profile_type';
   static const settings = 'settings';
+  static const profiles = 'stored_profiles';
+  static const activeProfileIndex = 'active_profile_index';
 }

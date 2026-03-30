@@ -1,68 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gurukul_bhutpurva/data/models/member/member_model.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
+import 'package:gurukul_bhutpurva/core/services/api_service.dart';
+import 'package:gurukul_bhutpurva/data/models/batch/batch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/program/program_model.dart';
+import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class ProgramsController extends GetxController {
   static ProgramsController get instance => Get.find();
 
   final RxBool isSearch = false.obs;
+  final RxBool isLoading = false.obs;
+  late String batchId;
 
   final TextEditingController searchController = TextEditingController();
 
-  final RxList<MemberModel> members = <MemberModel>[
-    MemberModel(
-      name: 'Cnkur Vitthalbhai Gohil',
-      id: '1',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      isVerified: false,
-    ),
-    MemberModel(
-      name: 'Ankur Vitthalbhai Gohil',
-      id: '1',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      isVerified: false,
-    ),
-    MemberModel(
-      name: 'Amit Babubhai Jesadiya',
-      id: '2',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      isVerified: false,
-    ),
-    MemberModel(
-      name: 'Alpesh Lalubhai Thummar',
-      id: '3',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      isVerified: false,
-    ),
-    MemberModel(
-      name: 'Bhavesh Ghanshyambhai Dholariya',
-      id: '4',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      isVerified: false,
-    ),
-    MemberModel(
-      name: 'Brijesh Ashokbhai Vaghani',
-      id: '5',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      isVerified: false,
-    ),
-    MemberModel(
-      name: 'Bhargav Jayshukhbhai Kakadiya',
-      id: '6',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      isVerified: false,
-    ),
-  ].obs;
-
-  final RxList<MemberModel> filteredMembers = <MemberModel>[].obs;
+  final RxList<BatchStudentModel> members = <BatchStudentModel>[].obs;
+  final RxList<BatchStudentModel> filteredMembers = <BatchStudentModel>[].obs;
+  final apiService = ApiService();
 
   final currentIndex = 0.obs;
 
@@ -71,7 +26,9 @@ class ProgramsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    batchId = Get.arguments;
     getPrograms();
+    getBatchMembers();
   }
 
   void changeIndex(int index) {
@@ -98,27 +55,74 @@ class ProgramsController extends GetxController {
     }
   }
 
-  void getPrograms() {
-    programs.assignAll([
-      ProgramModel(
-        id: '1',
-        name: 'Program A',
-        details: 'This is a description of Program A',
-      ),
-      ProgramModel(
-        id: '2',
-        name: 'Program B',
-        details: 'This is a description of Program B',
-      ),
-    ]);
+  Future<void> getPrograms() async {
+    try {
+      isLoading.value = true;
+      final response = await apiService.get(
+        ApiConstants.getProgram(batchFilter: batchId),
+      );
+
+      if (response.status == 200) {
+        final List<dynamic> programsList = response.data['programs'] ?? [];
+        programs.assignAll(
+          programsList.map((e) => ProgramModel.fromJson(e)).toList(),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error fetching programs: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void addProgram(String name) {
-    final program = ProgramModel(id: DateTime.now().toString(), name: name);
-    programs.add(program);
+  Future<void> getBatchMembers() async {
+    try {
+      isLoading.value = true;
+      final response = await apiService.get(ApiConstants.batchDetails(batchId));
+
+      if (response.status == 200) {
+        final batchData = BatchModel.fromJson(response.data);
+        members.assignAll(batchData.students);
+        filteredMembers.assignAll(members);
+      }
+    } catch (e) {
+      debugPrint("Error fetching batch members: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  Map<String, List<MemberModel>> get groupedMembers {
+  Future<void> addProgram({
+    required String name,
+    required String description,
+    required DateTime date,
+  }) async {
+    try {
+      isLoading.value = true;
+
+      final response = await apiService.post(
+        ApiConstants.createProgram,
+        body: {
+          "name": name,
+          "batchId": batchId,
+          "description": description,
+          "date": date.toIso8601String().split('T').first,
+        },
+      );
+
+      if (response.status == 200 || response.status == 201) {
+        AppSnackbar.success("Program created successfully");
+        getPrograms();
+      }
+    } catch (e) {
+      debugPrint("Error creating program: $e");
+      AppSnackbar.error(e.toString().replaceAll("Exception: ", ""));
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Map<String, List<BatchStudentModel>> get groupedMembers {
     // 1️⃣ Make a copy and sort members
     final sortedMembers = [...members];
     sortedMembers.sort(
@@ -126,7 +130,7 @@ class ProgramsController extends GetxController {
     );
 
     // 2️⃣ Group after sorting
-    final Map<String, List<MemberModel>> map = {};
+    final Map<String, List<BatchStudentModel>> map = {};
 
     for (final member in sortedMembers) {
       final key = member.name[0].toUpperCase();
@@ -137,7 +141,7 @@ class ProgramsController extends GetxController {
     return map;
   }
 
-  Map<String, List<MemberModel>> get groupedFMembers {
+  Map<String, List<BatchStudentModel>> get groupedFMembers {
     // 1️⃣ Make a copy and sort members
     final sortedMembers = [...filteredMembers];
     sortedMembers.sort(
@@ -145,7 +149,7 @@ class ProgramsController extends GetxController {
     );
 
     // 2️⃣ Group after sorting
-    final Map<String, List<MemberModel>> map = {};
+    final Map<String, List<BatchStudentModel>> map = {};
 
     for (final member in sortedMembers) {
       final key = member.name[0].toUpperCase();

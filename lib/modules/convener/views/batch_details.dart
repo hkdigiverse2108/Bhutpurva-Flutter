@@ -42,10 +42,7 @@ class BatchDetails extends GetView<BatchDetailsController> {
               _tabSection(),
               Expanded(
                 child: TabBarView(
-                  children: [
-                    _allStudents(context),
-                    _assignedContent(),
-                  ],
+                  children: [_allStudents(context), _assignedContent()],
                 ),
               ),
             ],
@@ -197,7 +194,10 @@ class BatchDetails extends GetView<BatchDetailsController> {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                Get.toNamed(AppRoutes.programs);
+                                Get.toNamed(
+                                  AppRoutes.programs,
+                                  arguments: controller.batchData.value?.id,
+                                );
                               },
                               icon: const Icon(
                                 Icons.auto_awesome_motion_rounded,

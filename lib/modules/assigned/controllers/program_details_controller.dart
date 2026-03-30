@@ -1,58 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/constants/enums.dart';
+import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/data/models/attendance/attendance_model.dart';
+import 'package:gurukul_bhutpurva/data/models/batch/batch_model.dart';
+import 'package:gurukul_bhutpurva/data/models/program/program_model.dart';
 
 class ProgramDetailsController extends GetxController {
   final RxBool isSearch = false.obs;
 
   final TextEditingController searchController = TextEditingController();
 
-  final RxList<AttendanceModel> members = <AttendanceModel>[
-    AttendanceModel(
-      name: 'Cnkur Vitthalbhai Gohil',
-      id: '0',
-      mobile: '1234567890',
-      profileCompletion: 0.0,
-      createdAt: DateTime.now(),
-    ),
-    // AttendanceModel(
-    //   name: 'Ankur Vitthalbhai Gohil',
-    //   id: '1',
-    //   mobile: '1234567890',
-    //   profileCompletion: 0.0,
-    // ),
-    // AttendanceModel(
-    //   name: 'Amit Babubhai Jesadiya',
-    //   id: '2',
-    //   mobile: '1234567890',
-    //   profileCompletion: 0.0,
-    // ),
-    // AttendanceModel(
-    //   name: 'Alpesh Lalubhai Thummar',
-    //   id: '3',
-    //   mobile: '1234567890',
-    //   profileCompletion: 0.0,
-    // ),
-    // AttendanceModel(
-    //   name: 'Bhavesh Ghanshyambhai Dholariya',
-    //   id: '4',
-    //   mobile: '1234567890',
-    //   profileCompletion: 0.0,
-    // ),
-    // AttendanceModel(
-    //   name: 'Brijesh Ashokbhai Vaghani',
-    //   id: '5',
-    //   mobile: '1234567890',
-    //   profileCompletion: 0.0,
-    // ),
-    // AttendanceModel(
-    //   name: 'Bhargav Jayshukhbhai Kakadiya',
-    //   id: '6',
-    //   mobile: '1234567890',
-    //   profileCompletion: 0.0,
-    // ),
-  ].obs;
+  final RxList<AttendanceModel> members = <AttendanceModel>[].obs;
+  final RxBool isLoading = false.obs;
+  final apiService = ApiService();
+  late ProgramModel program;
+
+  @override
+  void onInit() {
+    super.onInit();
+    program = Get.arguments;
+    getBatchMembers();
+  }
+
+  Future<void> getBatchMembers() async {
+    if (program.batchId == null) return;
+
+    try {
+      isLoading.value = true;
+      final response = await apiService.get(
+        ApiConstants.batchDetails(program.batchId!.id),
+      );
+
+      if (response.status == 200) {
+        final batchData = BatchModel.fromJson(response.data);
+        members.assignAll(
+          batchData.students.map((s) => AttendanceModel(
+                id: s.id,
+                name: s.fullName,
+                mobile: s.phoneNumber,
+                profileCompletion: s.profileCompletion,
+                createdAt: DateTime.now(),
+              )),
+        );
+        filteredMembers.assignAll(members);
+      }
+    } catch (e) {
+      debugPrint("Error fetching batch members for attendance: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   final RxList<AttendanceModel> filteredMembers = <AttendanceModel>[].obs;
 

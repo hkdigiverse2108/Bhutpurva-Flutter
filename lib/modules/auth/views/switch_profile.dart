@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:gurukul_bhutpurva/app/app_routes.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/constants/app_colors.dart';
 import 'package:gurukul_bhutpurva/core/constants/app_images.dart';
 import 'package:gurukul_bhutpurva/core/constants/app_size.dart';
+import 'package:gurukul_bhutpurva/data/models/user/stored_profile.dart';
 import 'package:gurukul_bhutpurva/modules/auth/controllers/switch_profile_controller.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/buttons/app_button.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -25,10 +26,10 @@ class SwitchProfile extends GetView<SwitchProfileController> {
         ),
         child: Column(
           children: [
-            // 🔹 Top image area (ignored / reserved)
+            // 🔹 Top image area (reserved)
             Expanded(flex: 3, child: SizedBox()),
 
-            // 🔹 Bottom login container
+            // 🔹 Bottom container
             Expanded(
               flex: 4,
               child: Container(
@@ -61,7 +62,9 @@ class SwitchProfile extends GetView<SwitchProfileController> {
                           // Welcome text
                           Text(
                             'Gurukul Bhutpurva',
-                            style: Theme.of(context).textTheme.headlineMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.primary,
@@ -72,7 +75,9 @@ class SwitchProfile extends GetView<SwitchProfileController> {
 
                           Text(
                             'Select Profile',
-                            style: Theme.of(context).textTheme.headlineSmall
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textPrimary,
@@ -80,47 +85,65 @@ class SwitchProfile extends GetView<SwitchProfileController> {
                           ),
 
                           const Gap(AppSize.sm),
+
+                          // 🔹 Dynamic profiles list
                           Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  UserCard(
-                                    avatar: AssetImage(
-                                      'assets/images/avatar.png',
-                                    ),
-                                    name: 'John Doe',
-                                    email: 'john.doe@example.com',
-                                    onTap: () {
-                                      Get.toNamed(AppRoutes.navigation);
+                            child: Obx(() {
+                              if (controller.profiles.isEmpty) {
+                                return Center(
+                                  child: Text(
+                                    'No profiles yet.\nRegister or log in to add one.',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                  ),
+                                );
+                              }
+
+                              return SingleChildScrollView(
+                                child: Column(
+                                  children: List.generate(
+                                    controller.profiles.length,
+                                    (index) {
+                                      final profile =
+                                          controller.profiles[index];
+                                      final isActive = index ==
+                                          controller.activeIndex.value;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: AppSize.sm,
+                                        ),
+                                        child: UserCard(
+                                          profile: profile,
+                                          isActive: isActive,
+                                          onTap: () =>
+                                              controller.selectProfile(index),
+                                          onRemove: () =>
+                                              _confirmRemove(context, index),
+                                        ),
+                                      );
                                     },
                                   ),
-                                  const Gap(AppSize.sm),
-                                  UserCard(
-                                    avatar: AssetImage(
-                                      'assets/images/avatar.png',
-                                    ),
-                                    name: 'Jane Smith',
-                                    email: 'jane.smith@example.com',
-                                    onTap: () {
-                                      Get.toNamed(AppRoutes.navigation);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              );
+                            }),
                           ),
+
                           const Gap(AppSize.sm),
                           Text("OR"),
                           const Gap(AppSize.sm),
-                          // 🔹 Register (Primary)
+
+                          // 🔹 Add Account
                           AppButton(
-                            icon: PhosphorIconsBold.user,
-                            title: 'Register',
+                            icon: PhosphorIconsBold.userPlus,
+                            title: 'Add Account',
                             backgroundColor: AppColors.primary,
                             textColor: AppColors.textWhite,
-                            onTap: () {
-                              Get.toNamed(AppRoutes.register);
-                            },
+                            onTap: controller.addNewAccount,
                           ),
 
                           const Gap(AppSize.md),
@@ -132,7 +155,9 @@ class SwitchProfile extends GetView<SwitchProfileController> {
                             child: Text.rich(
                               TextSpan(
                                 text: 'Need Help? ',
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(color: AppColors.textSecondary),
                                 children: [
                                   TextSpan(
@@ -162,25 +187,89 @@ class SwitchProfile extends GetView<SwitchProfileController> {
       ),
     );
   }
+
+  void _confirmRemove(BuildContext context, int index) {
+    final profile = controller.profiles[index];
+    final name = _buildFullName(profile);
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text('Remove Account'),
+        content: Text(
+          'Are you sure you want to remove "$name" from this device?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              controller.removeProfile(index);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text(
+              'Remove',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _buildFullName(StoredProfile profile) {
+    final parts = [
+      profile.user.name,
+      profile.user.fatherName,
+      profile.user.surname,
+    ].where((p) => p != null && p.isNotEmpty);
+    return parts.isEmpty ? 'Unknown' : parts.join(' ');
+  }
 }
 
 class UserCard extends StatelessWidget {
-  final String name;
-  final String email;
-  final ImageProvider avatar;
+  final StoredProfile profile;
+  final bool isActive;
   final VoidCallback onTap;
+  final VoidCallback onRemove;
 
   const UserCard({
     super.key,
-    required this.name,
-    required this.email,
-    required this.avatar,
+    required this.profile,
+    required this.isActive,
     required this.onTap,
+    required this.onRemove,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final fullName = SwitchProfile._buildFullName(profile);
+    final subtitle =
+        profile.user.email ?? profile.user.phoneNumber ?? '';
+    final role = profile.user.role?.name ?? 'user';
+
+    // Build image provider
+    ImageProvider? imageProvider;
+    final img = profile.user.image;
+    if (img != null && img.isNotEmpty) {
+      if (img.startsWith('http')) {
+        imageProvider = NetworkImage(img);
+      } else {
+        final cleanPath = img.startsWith('/') ? img.substring(1) : img;
+        imageProvider =
+            NetworkImage('${ApiConstants.baseUrl}/$cleanPath');
+      }
+    }
 
     return Material(
       color: Colors.transparent,
@@ -194,7 +283,10 @@ class UserCard extends StatelessWidget {
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(AppSize.cardRadiusLg),
             border: Border.all(
-              color: theme.dividerColor.withValues(alpha: 0.08),
+              color: isActive
+                  ? AppColors.primary.withValues(alpha: 0.5)
+                  : theme.dividerColor.withValues(alpha: 0.08),
+              width: isActive ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
@@ -206,19 +298,32 @@ class UserCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              /// AVATAR WITH GRADIENT RING + ERROR HANDLING
+              /// AVATAR
               Container(
                 padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.black],
+                    colors: isActive
+                        ? [AppColors.primary, AppColors.black]
+                        : [Colors.grey.shade400, Colors.grey.shade300],
                   ),
                 ),
                 child: CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white,
-                  child: _AvatarImage(image: avatar, name: name),
+                  child: imageProvider != null
+                      ? ClipOval(
+                          child: Image(
+                            image: imageProvider,
+                            width: 54,
+                            height: 54,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                _FallbackAvatar(name: fullName),
+                          ),
+                        )
+                      : _FallbackAvatar(name: fullName),
                 ),
               ),
 
@@ -230,77 +335,75 @@ class UserCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      fullName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
-                      email,
+                      subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.hintColor,
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        role.capitalizeFirst ?? role,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isActive
+                              ? AppColors.primary
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
 
-              /// ACTION ICON
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+              /// ACTIVE INDICATOR / REMOVE
+              if (isActive)
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    PhosphorIconsFill.checkCircle,
+                    size: 22,
+                    color: AppColors.primary,
+                  ),
+                )
+              else
+                IconButton(
+                  icon: Icon(
+                    PhosphorIconsRegular.caretRight,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                  onPressed: onTap,
                 ),
-                child: Icon(
-                  PhosphorIconsRegular.caretRight,
-                  size: 18,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _AvatarImage extends StatelessWidget {
-  final ImageProvider image;
-  final String name;
-
-  const _AvatarImage({required this.image, required this.name});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipOval(
-      child: Image(
-        image: image,
-        width: 54,
-        height: 54,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          /// FALLBACK WHEN IMAGE FAILS
-          return _FallbackAvatar(name: name);
-        },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-
-          /// LOADING STATE
-          return const Center(
-            child: SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          );
-        },
       ),
     );
   }

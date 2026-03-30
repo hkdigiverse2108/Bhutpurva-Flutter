@@ -218,9 +218,20 @@ class MenusController extends GetxController {
       );
 
       if (response.status == 200) {
+        // Remove current profile from the stored list
+        final currentIndex = storage.activeProfileIndex;
+        final remaining = await storage.removeProfile(currentIndex);
         await storage.clearSession();
+
         Get.back(); // close dialog
-        Get.offAllNamed(AppRoutes.login);
+
+        if (remaining > 0) {
+          // Switch to the first remaining profile and show picker
+          await storage.switchToProfile(0);
+          Get.offAllNamed(AppRoutes.switchProfile);
+        } else {
+          Get.offAllNamed(AppRoutes.login);
+        }
         return;
       }
     } catch (e) {

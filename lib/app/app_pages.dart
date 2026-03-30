@@ -54,6 +54,7 @@ import 'package:gurukul_bhutpurva/modules/sgis/binding/sgis_binding.dart';
 import 'package:gurukul_bhutpurva/modules/sgis/views/sgis_page.dart';
 import 'package:gurukul_bhutpurva/modules/splash/views/splash.dart';
 import 'package:gurukul_bhutpurva/modules/survey/binding/survey_binding.dart';
+import 'package:gurukul_bhutpurva/modules/survey/views/survey_details.dart';
 import 'package:gurukul_bhutpurva/modules/survey/views/survey.dart';
 import 'package:gurukul_bhutpurva/modules/tithi_calendar/bindings/tithi_calender_binding.dart';
 import 'package:gurukul_bhutpurva/modules/tithi_calendar/views/tithi_calender.dart';
@@ -225,8 +226,15 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.survey,
-      page: () => Survey(),
+      page: () => const Survey(),
       binding: SurveyBinding(),
+      customTransition: FadeSlideTransition(),
+      transitionDuration: const Duration(milliseconds: 900),
+    ),
+    GetPage(
+      name: AppRoutes.surveyDetails,
+      page: () => const SurveyDetailsView(),
+      binding: SurveyBinding(), // We can share the binding if it has both controllers or lazyPut
       customTransition: FadeSlideTransition(),
       transitionDuration: const Duration(milliseconds: 900),
     ),

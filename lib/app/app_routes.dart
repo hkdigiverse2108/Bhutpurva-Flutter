@@ -38,4 +38,5 @@ class AppRoutes {
   static const programDetails = '/program_details';
   static const survey = '/survey';
   static const attendance = '/attendance';
+  static const surveyDetails = '/survey_details';
 }

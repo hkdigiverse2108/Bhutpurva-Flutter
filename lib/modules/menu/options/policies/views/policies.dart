@@ -5,28 +5,6 @@ import 'package:gurukul_bhutpurva/core/constants/app_colors.dart';
 import 'package:gurukul_bhutpurva/modules/menu/options/policies/controllers/policies_controller.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/shimmer/custom_shimmer.dart';
 
-// const String _privacyPolicyText = '''
-// At Bhutpurva, we are committed to protecting your privacy and ensuring the security of your personal data. This Privacy Policy outlines how we collect, use, and safeguard your information when you use our app.
-
-// 1. Information We Collect
-// We collect various types of personal information to provide and improve our services, including:
-// • Personal details such as name, contact information, address details, and professional details.
-// • Family details including the name and number of family members.
-
-// 2. How We Use Your Information
-// Your information is used to manage attendance, surveys, assigned responsibilities, and other gurukul activities.
-// ''';
-
-// const String _activistPolicyText = '''
-// 1. Intellectual Property Right
-// All intellectual property within Bhutpurva, including content, materials, and resources, are the exclusive property of the SGRS Organization.
-
-// Unauthorized copying, public performance, distribution, or commercial use is strictly prohibited and may result in legal consequences.
-
-// 2. Confidentiality and Data Sharing
-// The app and its contents are intended for authorized users only. Any misuse or unauthorized access is prohibited.
-// ''';
-
 class Policies extends GetView<PoliciesController> {
   const Policies({super.key});
 
@@ -62,7 +40,7 @@ class Policies extends GetView<PoliciesController> {
                 () => CustomShimmer(
                   isLoading: controller.isLoading.value,
                   child: _PolicyCard(
-                    title: 'Privacy policy',
+                    // title: 'Privacy policy',
                     content: controller.htmlPolicyContent.value,
                   ),
                 ),
@@ -73,7 +51,7 @@ class Policies extends GetView<PoliciesController> {
                 () => CustomShimmer(
                   isLoading: controller.isTermsLoading.value,
                   child: _PolicyCard(
-                    title: 'Activist policy',
+                    // title: 'Activist policy',
                     content: controller.htmlTermsContent.value,
                   ),
                 ),
@@ -87,10 +65,10 @@ class Policies extends GetView<PoliciesController> {
 }
 
 class _PolicyCard extends StatelessWidget {
-  final String title;
+  final String? title;
   final String content;
 
-  const _PolicyCard({required this.title, required this.content});
+  const _PolicyCard({this.title, required this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -113,17 +91,18 @@ class _PolicyCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// TITLE
-            Center(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
+            if (title != null)
+              Center(
+                child: Text(
+                  title!,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+            if (title != null) const SizedBox(height: 20),
 
             /// CONTENT
             HtmlWidget(

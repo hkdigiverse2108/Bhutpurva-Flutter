@@ -36,6 +36,11 @@ class ApiConstants {
   static const lifeLight = "/lifeLight/add";
   static String getLifeLightById(String id) => "/lifeLight/user/$id";
 
+  // survey
+  static const surveys = "/survey/get";
+  static String surveyById(String id) => "/survey/get/$id";
+  static String submitSurvey = "/survey/response";
+
   // attendance
   static const attendance = "/attendance/add";
   static String getAttendanceById(String id) => "/attendance/user/$id";
@@ -76,4 +81,24 @@ class ApiConstants {
   // batch
   // static String batch() => "/batch/get";
   static String batchDetails(String id) => "/batch/get/$id";
+
+  // program
+  static String createProgram = "/program/create";
+  static String getProgram({
+    int page = 1,
+    int? limit,
+    String? query,
+    String? batchFilter,
+  }) {
+    return _buildUrl('/program/get', {
+      'page': page,
+      'limit': limit,
+      'search': query,
+      'batchFilter': batchFilter,
+    });
+  }
+
+  static String getProgramById(String id) => "/program/$id";
+  static String updateProgram = "/program/update";
+  static String deleteProgram(String id) => "/program/$id";
 }

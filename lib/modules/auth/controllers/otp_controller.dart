@@ -74,6 +74,17 @@ class OtpController extends GetxController {
           );
           log('Profile type saved.');
 
+          // Add to multi-profile list
+          final profileIndex = await storageService.addProfile(
+            data.token,
+            data.user,
+          );
+          await storageService.write(
+            'active_profile_index',
+            profileIndex,
+          );
+          log('Profile added to local list at index $profileIndex.');
+
           storageService.isLoggedIn = true;
           log('isLoggedIn set.');
 
