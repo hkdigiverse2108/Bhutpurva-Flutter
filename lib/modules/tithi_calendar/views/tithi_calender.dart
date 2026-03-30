@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/constants/app_colors.dart';
 import 'package:gurukul_bhutpurva/modules/tithi_calendar/controllers/tithi_calender_controller.dart';
 
@@ -8,12 +9,15 @@ class TithiCalender extends GetView<TithiCalenderController> {
 
   @override
   Widget build(BuildContext context) {
-    final imagePath =
-        controller.monthImages[controller.selectedMonthIndex.value];
     return Scaffold(
       appBar: AppBar(title: const Text('Tithi Calendar'), centerTitle: true),
-      body: Obx(
-        () => SingleChildScrollView(
+      body: Obx(() {
+        final imagePath = controller
+            .tithiCalender
+            .value
+            ?.calender[controller.selectedMonthIndex.value]
+            .image;
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
@@ -31,10 +35,13 @@ class TithiCalender extends GetView<TithiCalenderController> {
                     ),
                   ],
                 ),
-                child: const Text(
-                  'Tithi Calendar 2025',
+                child: Text(
+                  'Tithi Calendar ${controller.tithiCalender.value?.year}',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
 
@@ -61,10 +68,10 @@ class TithiCalender extends GetView<TithiCalenderController> {
                         borderRadius: BorderRadius.circular(12),
                         child: imagePath == null
                             ? _imageErrorWidget()
-                            : Image.asset(
-                                controller.monthImages[controller
-                                    .selectedMonthIndex
-                                    .value]!,
+                            : Image.network(
+                                (imagePath.startsWith('http'))
+                                    ? imagePath
+                                    : ('${ApiConstants.baseUrl}/$imagePath'),
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) {
                                   return _imageErrorWidget();
@@ -104,9 +111,11 @@ class TithiCalender extends GetView<TithiCalenderController> {
                 runSpacing: 12,
                 alignment: WrapAlignment.center,
                 children: List.generate(
-                  controller.months.length,
+                  controller.tithiCalender.value?.calender.length ?? 0,
                   (index) => _monthChip(
-                    title: controller.months[index],
+                    title:
+                        controller.tithiCalender.value?.calender[index].month ??
+                        '',
                     isSelected: controller.selectedMonthIndex.value == index,
                     onTap: () => controller.selectMonth(index),
                   ),
@@ -114,8 +123,8 @@ class TithiCalender extends GetView<TithiCalenderController> {
               ),
             ],
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 

@@ -4,11 +4,15 @@ import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
 import 'package:gurukul_bhutpurva/data/models/res/res_model.dart';
+import 'package:gurukul_bhutpurva/shared/global/global_ver.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class LifeLightController extends GetxController {
   final apiSirvices = ApiService();
   final StorageService storage = Get.find();
+
+  final Rx<String?> lifeLightImage =
+      globalSettings?.lifeLightImage.obs ?? "".obs;
 
   void openFillForm(BuildContext context) {
     final TextEditingController feedbackController = TextEditingController();

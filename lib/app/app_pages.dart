@@ -5,7 +5,6 @@ import 'package:gurukul_bhutpurva/modules/anubhuti/views/anubhuti.dart';
 import 'package:gurukul_bhutpurva/modules/assigned/binding/assigned_binding.dart';
 import 'package:gurukul_bhutpurva/modules/assigned/binding/program_binding.dart';
 import 'package:gurukul_bhutpurva/modules/assigned/views/assigned.dart';
-import 'package:gurukul_bhutpurva/modules/assigned/views/assigned_details.dart';
 import 'package:gurukul_bhutpurva/modules/assigned/views/program_details.dart';
 import 'package:gurukul_bhutpurva/modules/assigned/views/programs.dart';
 import 'package:gurukul_bhutpurva/modules/attendance/binding/attendance_binding.dart';
@@ -19,10 +18,10 @@ import 'package:gurukul_bhutpurva/modules/auth/views/otp.dart';
 import 'package:gurukul_bhutpurva/modules/auth/views/phone_login.dart';
 import 'package:gurukul_bhutpurva/modules/auth/views/register.dart';
 import 'package:gurukul_bhutpurva/modules/auth/views/switch_profile.dart';
+import 'package:gurukul_bhutpurva/modules/convener/bindings/batch_binding.dart';
 import 'package:gurukul_bhutpurva/modules/convener/bindings/convener_binding.dart';
-import 'package:gurukul_bhutpurva/modules/convener/bindings/group_binding.dart';
+import 'package:gurukul_bhutpurva/modules/convener/views/batch_details.dart';
 import 'package:gurukul_bhutpurva/modules/convener/views/convener.dart';
-import 'package:gurukul_bhutpurva/modules/convener/views/group_details.dart';
 import 'package:gurukul_bhutpurva/modules/convener/views/groups.dart';
 import 'package:gurukul_bhutpurva/modules/home/bindings/home_binding.dart';
 import 'package:gurukul_bhutpurva/modules/home/views/home.dart';
@@ -246,9 +245,9 @@ class AppPages {
       transitionDuration: const Duration(milliseconds: 900),
     ),
     GetPage(
-      name: AppRoutes.groupDetails,
-      page: () => GroupDetails(),
-      binding: GroupBinding(),
+      name: AppRoutes.batchDetails,
+      page: () => const BatchDetails(),
+      binding: BatchBinding(),
       customTransition: FadeSlideTransition(),
       transitionDuration: const Duration(milliseconds: 900),
     ),
@@ -261,8 +260,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.assignedDetails,
-      page: () => AssignedDetails(),
-      binding: AssignedBinding(),
+      page: () => const BatchDetails(),
+      binding: BatchBinding(),
       customTransition: FadeSlideTransition(),
       transitionDuration: const Duration(milliseconds: 900),
     ),

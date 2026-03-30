@@ -31,6 +31,7 @@ class UserModel {
   DateTime? createdAt;
   DateTime? updatedAt;
   String? image;
+  String? batchId;
 
   UserModel({
     this.id,
@@ -61,6 +62,7 @@ class UserModel {
     this.createdAt,
     this.updatedAt,
     this.image,
+    this.batchId,
   });
 
   factory UserModel.fromRawJson(String str) =>
@@ -120,6 +122,7 @@ class UserModel {
         ? null
         : DateTime.parse(json["updatedAt"]),
     image: json["image"],
+    batchId: json["batchId"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -159,6 +162,7 @@ class UserModel {
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
     "image": image,
+    "batchId": batchId,
   };
 }
 

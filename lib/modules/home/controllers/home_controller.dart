@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:get/get.dart';
+import 'package:gurukul_bhutpurva/app/app_routes.dart';
 import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
@@ -15,6 +16,8 @@ class HomeController extends GetxController {
 
   final apiService = ApiService();
   final storageService = Get.find<StorageService>();
+
+  late String userBatchId;
 
   @override
   void onInit() {
@@ -57,6 +60,17 @@ class HomeController extends GetxController {
       log(e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void navigateToAssigned() {
+    if (storageService.user.batchId != null) {
+      Get.toNamed(
+        AppRoutes.batchDetails,
+        arguments: storageService.user.batchId,
+      );
+    } else {
+      AppSnackbar.error("You are not assigned to any batch");
     }
   }
 }

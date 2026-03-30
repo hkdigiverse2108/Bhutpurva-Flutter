@@ -27,38 +27,54 @@ class MemberCard extends StatelessWidget {
     final progress = (member.profileCompletion.clamp(0, 100)) / 100;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       onTap: () => _openMemberDetails(context),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         ),
         child: Column(
           children: [
             /// ─────────── TOP ROW ───────────
             Row(
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: Text(
-                    member.name.substring(0, 1).toUpperCase(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                /// AVATAR
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.2),
+                        AppColors.primary.withValues(alpha: 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      member.name.substring(0, 1).toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
 
                 /// NAME + MOBILE
                 Expanded(
@@ -67,40 +83,47 @@ class MemberCard extends StatelessWidget {
                     children: [
                       Text(
                         member.name,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        member.mobile,
-                        style: Theme.of(context).textTheme.bodySmall,
+                      Row(
+                        children: [
+                          Icon(Icons.phone_iphone_rounded,
+                              size: 14, color: Colors.grey[500]),
+                          const SizedBox(width: 4),
+                          Text(
+                            member.mobile,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
 
-                // /// QUICK %
-                // Text(
-                //   "${member.profileCompletion}%",
-                //   style: const TextStyle(
-                //     fontWeight: FontWeight.bold,
-                //     color: Colors.green,
-                //   ),
-                // ),
                 const Gap(10),
 
-                /// VIEW BUTTON
+                /// UPDATE BUTTON
                 GestureDetector(
                   onTap: () =>
                       Get.toNamed(AppRoutes.memberUpdate, arguments: member),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(8),
                     child: Icon(
-                      Icons.remove_red_eye,
-                      color: AppColors.white,
+                      Icons.edit_document,
+                      color: AppColors.primary,
                       size: 18,
                     ),
                   ),
@@ -109,13 +132,14 @@ class MemberCard extends StatelessWidget {
             ),
 
             /// ─────────── BOTTOM SECTION ───────────
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,18 +149,23 @@ class MemberCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Profile completion",
+                        "Profile Completion",
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: Colors.grey,
                         ),
                       ),
                       Text(
                         "${member.profileCompletion}%",
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: progress >= 0.8
+                              ? Colors.green[700]
+                              : progress >= 0.5
+                                  ? Colors.orange[700]
+                                  : Colors.red[700],
                         ),
                       ),
                     ],
@@ -145,20 +174,38 @@ class MemberCard extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   /// PROGRESS BAR
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 6,
-                      backgroundColor: Colors.grey.shade300,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        progress >= 0.8
-                            ? Colors.green
-                            : progress >= 0.5
-                            ? Colors.orange
-                            : Colors.red,
+                  Stack(
+                    children: [
+                      Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                    ),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 500),
+                        height: 6,
+                        width: (MediaQuery.of(context).size.width - 80) * progress,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              progress >= 0.8
+                                  ? Colors.green
+                                  : progress >= 0.5
+                                      ? Colors.orange
+                                      : Colors.red,
+                              progress >= 0.8
+                                  ? Colors.green[400]!
+                                  : progress >= 0.5
+                                      ? Colors.orange[400]!
+                                      : Colors.red[400]!,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

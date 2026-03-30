@@ -11,6 +11,8 @@ class SettingsModel {
   String? playStoreId;
   String? playStoreUrl;
   String? sgsiPdf;
+  String? lifeLightImage;
+  String? anubhutiImage;
   SocialLinks? socialLinks;
   String? supportEmail;
   String? supportPhone;
@@ -28,6 +30,8 @@ class SettingsModel {
     this.logo,
     this.playStoreId,
     this.playStoreUrl,
+    this.lifeLightImage,
+    this.anubhutiImage,
     this.sgsiPdf,
     this.socialLinks,
     this.supportEmail,
@@ -54,6 +58,8 @@ class SettingsModel {
     logo: json["logo"],
     playStoreId: json["playStoreId"],
     playStoreUrl: json["playStoreUrl"],
+    lifeLightImage: json["lifeLightImage"],
+    anubhutiImage: json["anubhutiImage"],
     sgsiPdf: json["sgsiPdf"],
     socialLinks: json["socialLinks"] == null
         ? null
@@ -77,6 +83,8 @@ class SettingsModel {
     "logo": logo,
     "playStoreId": playStoreId,
     "playStoreUrl": playStoreUrl,
+    "lifeLightImage": lifeLightImage,
+    "anubhutiImage": anubhutiImage,
     "sgsiPdf": sgsiPdf,
     "socialLinks": socialLinks?.toJson(),
     "supportEmail": supportEmail,

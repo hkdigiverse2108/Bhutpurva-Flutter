@@ -1,32 +1,37 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gurukul_bhutpurva/core/services/api_service.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
-import 'package:gurukul_bhutpurva/data/models/member/member_model.dart';
+import 'package:gurukul_bhutpurva/data/models/batch/batch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/monitor/monitor_model.dart';
+import 'package:gurukul_bhutpurva/modules/assigned/controllers/assigned_controller.dart';
 import 'package:gurukul_bhutpurva/modules/convener/controllers/groups_controller.dart';
 
-class GroupDetailsController extends GetxController {
+class BatchDetailsController extends GetxController {
   final isLoading = true.obs;
   final hasEditAccess = false.obs;
   final isVerified = false.obs;
+  final showMonitors = false.obs;
 
   final className = "Class Name".obs;
-  final batch = "Batch A".obs;
-  final students = 10.obs;
-  final status = "Active".obs;
+  final batch = "Batch".obs;
+  final studentsCount = 0.obs;
 
-  final members = <MemberModel>[].obs;
+  final members = <BatchStudentModel>[].obs;
   final monitors = <MonitorModel>[].obs;
   final GlobalKey verifiedHintKey = GlobalKey();
 
   final storageService = Get.find<StorageService>();
+  final apiService = ApiService();
+  final Rxn<BatchModel> batchData = Rxn<BatchModel>();
 
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final dynamic tooltip = verifiedHintKey.currentState;
-
       tooltip?.ensureTooltipVisible();
     });
 
@@ -36,58 +41,62 @@ class GroupDetailsController extends GetxController {
   Future<void> initData() async {
     isLoading.value = true;
 
-    // Simulate API delay
-    await Future.delayed(const Duration(seconds: 2));
+    // Simulate API delay (replace with real API call later)
+    await Future.delayed(const Duration(seconds: 1));
 
-    final ClassesModel args = Get.arguments;
+    final dynamic args = Get.arguments;
+    String? batchId;
 
-    className.value = args.className;
-    batch.value = args.batch;
+    if (args is String) {
+      batchId = args;
+    } else if (args is ClassesModel) {
+      batchId = args.id; // Assuming ClassesModel has an id
+      className.value = args.className;
+      batch.value = args.batch;
+      studentsCount.value = args.members;
+    } else if (args is AssignedClass) {
+      batchId = args.id; // Assuming AssignedClass has an id
+      className.value = args.className;
+      batch.value = args.batch;
+      studentsCount.value = args.students;
+    }
+
+    if (batchId != null) {
+      try {
+        final response = await apiService.get(
+          ApiConstants.batchDetails(batchId),
+        );
+        if (response.status == 200) {
+          batchData.value = BatchModel.fromJson(
+            response.data as Map<String, dynamic>,
+          );
+
+          className.value = batchData.value?.groupId.name ?? className.value;
+          batch.value = batchData.value?.name ?? batch.value;
+          studentsCount.value =
+              batchData.value?.studentCount ?? studentsCount.value;
+          members.assignAll(batchData.value?.students ?? []);
+          isVerified.value = batchData.value?.isActive ?? false;
+          showMonitors.value = true;
+        }
+      } catch (e) {
+        log("Error fetching batch details: $e");
+      }
+    }
 
     if (storageService.isLeader || storageService.isConvener) {
       hasEditAccess.value = true;
     }
 
-    /// DUMMY MEMBERS DATA
-    members.assignAll(_dummyMembers());
-    monitors.assignAll(_dummyMonitor());
+    if (showMonitors.value && monitors.isEmpty) {
+      monitors.assignAll(_dummyMonitors());
+    }
 
     isLoading.value = false;
   }
 
-  List<MemberModel> _dummyMembers() {
+  List<MonitorModel> _dummyMonitors() {
     return [
-      MemberModel(
-        name: "Rahul Patel",
-        mobile: "9876543210",
-        profileCompletion: 80,
-        isVerified: true,
-        id: "1",
-      ),
-      MemberModel(
-        name: "Amit Shah",
-        mobile: "9123456789",
-        profileCompletion: 65,
-        isVerified: true,
-        id: "2",
-      ),
-      MemberModel(
-        name: "Neha Joshi",
-        mobile: "9988776655",
-        profileCompletion: 95,
-        isVerified: true,
-        id: "3",
-      ),
-    ];
-  }
-
-  List<MonitorModel> _dummyMonitor() {
-    return [
-      MonitorModel(
-        name: 'Rahul Patel',
-        mobile: '9312345678',
-        assignedMembers: ['Rahul Patel', 'Amit Shah', 'Neha Joshi'],
-      ),
       MonitorModel(
         name: 'Rahul Patel',
         mobile: '9312345678',
@@ -105,7 +114,6 @@ class GroupDetailsController extends GetxController {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              /// ICON
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -118,27 +126,18 @@ class GroupDetailsController extends GetxController {
                   size: 32,
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              /// TITLE
               const Text(
                 'Delete Monitor?',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
-
               const SizedBox(height: 8),
-
-              /// MESSAGE
               Text(
                 'Are you sure you want to delete this monitor?\nThis action cannot be undone.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
-
               const SizedBox(height: 24),
-
-              /// ACTION BUTTONS
               Row(
                 children: [
                   Expanded(

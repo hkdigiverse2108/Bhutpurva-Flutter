@@ -31,7 +31,7 @@ class AppRoutes {
   static const assigned = '/assigned';
   static const convener = '/convener';
   static const groups = '/groups';
-  static const groupDetails = '/group_details';
+  static const batchDetails = '/batch_details';
   static const memberUpdate = '/member_update';
   static const assignedDetails = '/assigned_details';
   static const programs = '/programs';
