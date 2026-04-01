@@ -1,9 +1,11 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/constants/enums.dart';
 import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
+import 'package:gurukul_bhutpurva/data/models/branch/branch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/class/class_model.dart';
 import 'package:gurukul_bhutpurva/data/models/user/user_model.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
@@ -40,13 +42,7 @@ class MyDetailsController extends GetxController {
   final class11 = ClassModel().obs;
   final class12 = ClassModel().obs;
 
-  final branch = [
-    'surat Gurukul',
-    'bharuch Gurukul',
-    'jasdan Gurukul',
-    'una Gurukul',
-    'new delhi Gurukul',
-  ].obs;
+  final branch = <BranchModel>[].obs;
 
   final currentCityList = <String>['select', 'surat', 'other'].obs;
 
@@ -65,7 +61,21 @@ class MyDetailsController extends GetxController {
       (index) => (currentYear - index).toString(),
     );
     loadUserData();
+    getBranches();
     super.onInit();
+  }
+
+  void getBranches() async {
+    try {
+      final res = await apiService.get(ApiConstants.branches());
+      if (res.status == 200) {
+        branch.value = (res.data as List<dynamic>)
+            .map((e) => BranchModel.fromJson(e))
+            .toList();
+      }
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   void loadUserData() {

@@ -5,13 +5,15 @@ import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/constants/enums.dart';
 import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
-import 'package:gurukul_bhutpurva/data/models/address/address_model.dart';
+import 'package:gurukul_bhutpurva/data/models/branch/branch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/class/class_model.dart';
 import 'package:gurukul_bhutpurva/data/models/user/user_model.dart';
+import 'package:gurukul_bhutpurva/data/models/address/location_model.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 import 'package:intl/intl.dart';
+import 'package:gurukul_bhutpurva/core/mixins/location_dropdown_mixin.dart';
 
-class UpdateProfileController extends GetxController {
+class UpdateProfileController extends GetxController with LocationDropdownMixin {
   final isUpdating = false.obs;
 
   static UpdateProfileController get instance => Get.find();
@@ -64,8 +66,8 @@ class UpdateProfileController extends GetxController {
   final class12 = ClassModel().obs;
 
   // Address Details
-  final currentAddress = AddressModel().obs;
-  final villageAddress = AddressModel().obs;
+  final currentAddress = AddressEntry().obs;
+  final villageAddress = AddressEntry().obs;
 
   final List<String> addressType = [
     'factory',
@@ -73,7 +75,7 @@ class UpdateProfileController extends GetxController {
     'office',
     'business',
   ].obs;
-  final List<Rx<AddressModel>> otherAddressList = <Rx<AddressModel>>[].obs;
+  final RxList<Map<String, dynamic>> otherAddressList = <Map<String, dynamic>>[].obs;
   final currentCityList = <String>['select', 'surat', 'other'].obs;
 
   late final List<String> passingYears;
@@ -134,13 +136,7 @@ class UpdateProfileController extends GetxController {
     'Skill & Hobbies',
   ];
 
-  final branch = [
-    'surat Gurukul',
-    'bharuch Gurukul',
-    'jasdan Gurukul',
-    'una Gurukul',
-    'new delhi Gurukul',
-  ].obs;
+  final branch = <BranchModel>[].obs;
 
   final countries = ['India', 'Other'].obs;
 
@@ -164,8 +160,25 @@ class UpdateProfileController extends GetxController {
       currentYear - 1990 + 1,
       (index) => (currentYear - index).toString(),
     );
+
+    loadCountriesFor(currentAddress);
+    loadCountriesFor(villageAddress);
+    getBranches();
     _populateData();
     super.onInit();
+  }
+
+  void getBranches() async {
+    try {
+      final res = await apiService.get(ApiConstants.branches());
+      if (res.status == 200) {
+        branch.value = (res.data as List<dynamic>)
+            .map((e) => BranchModel.fromJson(e))
+            .toList();
+      }
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   void _populateData() {
@@ -240,14 +253,51 @@ class UpdateProfileController extends GetxController {
       for (var address in user.addressIds!) {
         final type = address.type?.toLowerCase() ?? '';
         if (type.contains('current')) {
-          currentAddress.value = _mapAddressIdToAddressModel(address);
+          prefillAddressEntry(
+            currentAddress,
+            savedCountry: address.country,
+            savedState: address.state,
+            savedDistrict: address.district,
+            savedCity: address.city,
+            fullAddress: address.address,
+            pincode: address.pincode,
+          ).then((_) {
+            // After prefilling current address
+          });
         } else if (type.contains('village')) {
-          villageAddress.value = _mapAddressIdToAddressModel(address);
+          prefillAddressEntry(
+            villageAddress,
+            savedCountry: address.country,
+            savedState: address.state,
+            savedDistrict: address.district,
+            savedCity: address.city,
+            fullAddress: address.address,
+            pincode: address.pincode,
+          ).then((_) {
+            // After prefilling village address
+          });
         } else {
-          otherAddressList.add(_mapAddressIdToAddressModel(address).obs);
+          final newOther = AddressEntry().obs;
+          otherAddressList.add({
+            'selectedType': address.type?.obs ?? 'not Selected'.obs,
+            'address': newOther,
+          });
+          prefillAddressEntry(
+            newOther,
+            savedCountry: address.country,
+            savedState: address.state,
+            savedDistrict: address.district,
+            savedCity: address.city,
+            fullAddress: address.address,
+            pincode: address.pincode,
+          );
         }
       }
     }
+
+    // Load countries for unused form addresses just in case they weren't prefilled
+    if (currentAddress.value.countries.isEmpty) loadCountriesFor(currentAddress);
+    if (villageAddress.value.countries.isEmpty) loadCountriesFor(villageAddress);
 
     // Secondary Details
     // Normalize Marital Status
@@ -290,27 +340,7 @@ class UpdateProfileController extends GetxController {
 
     // Normalize Branch
     if (data.branch != null) {
-      final normalizedBranch = data.branch!.toLowerCase();
-      // Simple check if it matches existing lowercase values or basic normalization
-      if (branch.contains(normalizedBranch)) {
-        model.branch.value = normalizedBranch;
-      } else {
-        // Try to find a partial match or default?
-        // For now let's try to match existing format 'surat Gurukul'
-        final match = branch.firstWhere(
-          (b) => b.toLowerCase() == normalizedBranch,
-          orElse: () => '',
-        );
-        if (match.isNotEmpty) {
-          model.branch.value = match;
-        } else {
-          // matches nothing, maybe add it or leave empty if strict
-          model.branch.value = data.branch!;
-          if (!branch.contains(data.branch!)) {
-            branch.add(data.branch!);
-          }
-        }
-      }
+      model.branch.value = data.branch!;
     }
 
     model.passingYear.value = data.passingYear;
@@ -326,25 +356,12 @@ class UpdateProfileController extends GetxController {
           : ClassStatus.no,
     );
     if (data.branch != null) {
-      if (!branch.contains(data.branch!)) {
-        branch.add(data.branch!);
-      }
       model.branch.value = data.branch!;
     }
     return model;
   }
 
-  AddressModel _mapAddressIdToAddressModel(AddressId data) {
-    return AddressModel(
-      addressType: data.type ?? 'not Selected',
-      fullAddress: data.address ?? '',
-      city: data.city ?? '',
-      district: data.district ?? '',
-      state: data.state ?? '',
-      pincode: data.pincode ?? '',
-      country: data.country ?? '',
-    );
-  }
+  // Remove _mapAddressIdToAddressModel as we use AddressEntry directly now
 
   Future<void> updateProfile() async {
     try {
@@ -385,6 +402,43 @@ class UpdateProfileController extends GetxController {
           "class": "12",
         },
         // Address and other class details mapping...
+        "addresses": [
+          if (currentAddress.value.selectedCountryName != null)
+            {
+              "type": "current",
+              "address": currentAddress.value.fullAddress,
+              "city": currentAddress.value.selectedCityName ?? '',
+              "district": currentAddress.value.selectedDistrictName ?? '',
+              "state": currentAddress.value.selectedStateName ?? '',
+              "country": currentAddress.value.selectedCountryName ?? '',
+              "pincode": currentAddress.value.pincode,
+            },
+          if (villageAddress.value.selectedCountryName != null)
+            {
+              "type": "village",
+              "address": villageAddress.value.fullAddress,
+              "city": villageAddress.value.selectedCityName ?? '',
+              "district": villageAddress.value.selectedDistrictName ?? '',
+              "state": villageAddress.value.selectedStateName ?? '',
+              "country": villageAddress.value.selectedCountryName ?? '',
+              "pincode": villageAddress.value.pincode,
+            },
+          // Map otherAddressList...
+          ...otherAddressList.map((other) {
+            final entry = (other['address'] as Rx<AddressEntry>).value;
+            final selectedType = (other['selectedType'] as RxString).value;
+            if (entry.selectedCountryName == null) return null;
+            return {
+              "type": selectedType,
+              "address": entry.fullAddress,
+              "city": entry.selectedCityName ?? '',
+              "district": entry.selectedDistrictName ?? '',
+              "state": entry.selectedStateName ?? '',
+              "country": entry.selectedCountryName ?? '',
+              "pincode": entry.pincode,
+            };
+          }).where((e) => e != null),
+        ],
       };
 
       final response = await apiService.put(
@@ -564,7 +618,12 @@ class UpdateProfileController extends GetxController {
   }
 
   void addOtherAddress() {
-    otherAddressList.add(AddressModel().obs);
+    final entry = AddressEntry().obs;
+    otherAddressList.add({
+      'selectedType': 'select'.obs,
+      'address': entry,
+    });
+    loadCountriesFor(entry);
   }
 
   void removeOtherAddress(int index) {

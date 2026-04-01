@@ -7,12 +7,14 @@ import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/constants/enums.dart';
 import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
-import 'package:gurukul_bhutpurva/data/models/address/address_model.dart';
+import 'package:gurukul_bhutpurva/core/mixins/location_dropdown_mixin.dart';
+import 'package:gurukul_bhutpurva/data/models/address/location_model.dart';
+import 'package:gurukul_bhutpurva/data/models/branch/branch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/class/class_model.dart';
 import 'package:gurukul_bhutpurva/data/models/res/res_model.dart';
 import 'package:intl/intl.dart';
 
-class RegisterController extends GetxController {
+class RegisterController extends GetxController with LocationDropdownMixin {
   static RegisterController get instance => Get.find();
   final apiService = ApiService();
   final storage = Get.find<StorageService>();
@@ -63,8 +65,8 @@ class RegisterController extends GetxController {
   final class12 = ClassModel().obs;
 
   // Address Details
-  final currentAddress = AddressModel().obs;
-  final villageAddress = AddressModel().obs;
+  final currentAddress = AddressEntry().obs;
+  final villageAddress = AddressEntry().obs;
 
   final List<String> addressType = [
     'factory',
@@ -72,7 +74,7 @@ class RegisterController extends GetxController {
     'office',
     'business',
   ].obs;
-  final List<Rx<AddressModel>> otherAddressList = <Rx<AddressModel>>[].obs;
+  final List<Rx<AddressEntry>> otherAddressList = <Rx<AddressEntry>>[].obs;
   final currentCityList = <String>['select', 'surat', 'other'].obs;
 
   late final List<String> passingYears;
@@ -137,13 +139,7 @@ class RegisterController extends GetxController {
     'Skill & Hobbies',
   ];
 
-  final branch = [
-    'surat Gurukul',
-    'bharuch Gurukul',
-    'jasdan Gurukul',
-    'una Gurukul',
-    'new delhi Gurukul',
-  ].obs;
+  final branch = <BranchModel>[].obs;
 
   final countries = ['India', 'Other'].obs;
 
@@ -164,7 +160,23 @@ class RegisterController extends GetxController {
       currentYear - 1990 + 1,
       (index) => (currentYear - index).toString(),
     );
+    loadCountriesFor(currentAddress);
+    loadCountriesFor(villageAddress);
+    getBranches();
     super.onInit();
+  }
+
+  void getBranches() async {
+    try {
+      final res = await apiService.get(ApiConstants.branches());
+      if (res.statusCode == 200) {
+        branch.value = (res.data as List<dynamic>)
+            .map((e) => BranchModel.fromJson(e))
+            .toList();
+      }
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   void onTabTap(int index) {
@@ -322,7 +334,9 @@ class RegisterController extends GetxController {
   }
 
   void addOtherAddress() {
-    otherAddressList.add(AddressModel().obs);
+    final entry = AddressEntry().obs;
+    loadCountriesFor(entry);
+    otherAddressList.add(entry);
   }
 
   void removeOtherAddress(int index) {
@@ -468,16 +482,7 @@ class RegisterController extends GetxController {
           "gender": gender.value,
           "hrNo": hrNoController.text,
           "currentCity": currentCity.value,
-          "addresses": [
-            {
-              "address": "123 Main St",
-              "city": "New York",
-              "district": "Manhattan",
-              "state": "NY",
-              "country": "USA",
-              "pincode": "10001",
-            },
-          ],
+          "addresses": _buildAddressesPayload(),
           "occupation": "",
           "professions": selectedProfessions,
           "education": selectedEducations,
@@ -501,6 +506,36 @@ class RegisterController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  List<Map<String, dynamic>> _buildAddressesPayload() {
+    final list = <Map<String, dynamic>>[];
+
+    Map<String, dynamic>? buildMap(AddressEntry entry, String type) {
+      if (entry.selectedCountryName == null) return null;
+      return {
+        "addressType": type,
+        "address": entry.fullAddress,
+        "city": entry.selectedCityName ?? "",
+        "district": entry.selectedDistrictName ?? "",
+        "state": entry.selectedStateName ?? "",
+        "country": entry.selectedCountryName ?? "",
+        "pincode": entry.pincode,
+      };
+    }
+
+    final current = buildMap(currentAddress.value, "current");
+    if (current != null) list.add(current);
+
+    final village = buildMap(villageAddress.value, "village");
+    if (village != null) list.add(village);
+
+    for (var i = 0; i < otherAddressList.length; i++) {
+      final other = buildMap(otherAddressList[i].value, "other");
+      if (other != null) list.add(other);
+    }
+
+    return list;
   }
 
   @override

@@ -85,7 +85,9 @@ class MajorDetails extends GetView<RegisterController> {
                             isRequired: true,
                             hintText: 'select',
                             fieldType: FieldType.dropdown,
-                            dropdownItems: controller.branch,
+                            dropdownItems: controller.branch
+                                .map((e) => e.name)
+                                .toList(),
                             dropdownValue: controller.tenTh.value.branch.value,
                             onDropdownChanged: (value) {
                               controller.tenTh.value.branch.value = value!;
@@ -239,7 +241,9 @@ class MajorDetails extends GetView<RegisterController> {
                             isRequired: true,
                             hintText: 'select',
                             fieldType: FieldType.dropdown,
-                            dropdownItems: controller.branch,
+                            dropdownItems: controller.branch
+                                .map((e) => e.name)
+                                .toList(),
                             dropdownValue:
                                 controller.twelveTh.value.branch.value,
                             onDropdownChanged: (value) {

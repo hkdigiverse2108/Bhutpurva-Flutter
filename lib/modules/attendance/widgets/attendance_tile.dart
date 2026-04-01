@@ -4,7 +4,7 @@ import 'package:gurukul_bhutpurva/data/models/attendance/attendance_model.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceTile extends StatelessWidget {
-  final AttendanceModel attendance;
+  final SAttendanceModel attendance;
   const AttendanceTile({super.key, required this.attendance});
 
   @override
@@ -32,7 +32,7 @@ class AttendanceTile extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  attendance.name,
+                  attendance.programName,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -45,11 +45,21 @@ class AttendanceTile extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(attendance.attendanceType.value),
+                  color: _getStatusColor(
+                    attendance.isPresent == true
+                        ? AttendanceType.present
+                        : attendance.isPresent == false
+                        ? AttendanceType.absent
+                        : AttendanceType.notSelected,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  attendance.attendanceType.value.name,
+                  attendance.isPresent == true
+                      ? "Present"
+                      : attendance.isPresent == false
+                      ? "Absent"
+                      : "Not Selected",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -61,7 +71,7 @@ class AttendanceTile extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Submitted on: ${DateFormat('MMM dd, yyyy').format(attendance.createdAt)}',
+            'Submitted on: ${DateFormat('MMM dd, yyyy').format(attendance.date)}',
             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
         ],

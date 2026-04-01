@@ -97,7 +97,9 @@ class UpdateClassWiseStudyDetails extends GetView<UpdateProfileController> {
                     ? CommonTextFormField(
                         hintText: 'select',
                         fieldType: FieldType.dropdown,
-                        dropdownItems: controller.branch,
+                        dropdownItems: controller.branch
+                            .map((e) => e.name)
+                            .toList(),
                         dropdownValue: model.value.branch.value,
                         onDropdownChanged: (value) {
                           model.value.branch.value = value!;

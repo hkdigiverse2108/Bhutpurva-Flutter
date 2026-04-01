@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gurukul_bhutpurva/core/constants/app_colors.dart';
 import 'package:gurukul_bhutpurva/core/constants/enums.dart';
-import 'package:gurukul_bhutpurva/data/models/attendance/attendance_model.dart';
+// import 'package:gurukul_bhutpurva/data/models/attendance/attendance_model.dart';
 import 'package:gurukul_bhutpurva/modules/assigned/controllers/program_details_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -15,71 +15,148 @@ class ProgramDetails extends GetView<ProgramDetailsController> {
   Widget build(BuildContext context) {
     final program = controller.program;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(program.name, overflow: TextOverflow.ellipsis),
-      ),
-      body: Obx(() {
-        if (controller.isLoading.value && controller.members.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (controller.hasChanges.value) {
+          _showExitDialog(context);
+        } else {
+          Navigator.of(context).pop();
         }
-
-        return RefreshIndicator(
-          onRefresh: controller.getBatchMembers,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(program.name, overflow: TextOverflow.ellipsis),
+          actions: [
+            Obx(
+              () => controller.hasChanges.value
+                  ? IconButton(
+                      icon: const Icon(PhosphorIconsRegular.floppyDisk),
+                      onPressed: controller.updateAttendance,
+                      tooltip: 'Save',
+                    )
+                  : const SizedBox.shrink(),
             ),
-            slivers: [
-              /// PROGRAM INFO HEADER
-              SliverToBoxAdapter(
-                child: _ProgramInfoHeader(
-                  name: program.name,
-                  description: program.description,
-                  date: program.date,
-                  batchName: program.batchId?.name,
-                ),
-              ),
+          ],
+        ),
+        body: Obx(() {
+          if (controller.isLoading.value && controller.members.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-              /// ATTENDANCE SUMMARY BAR
-              SliverToBoxAdapter(
-                child: _AttendanceSummaryBar(members: controller.members),
+          return RefreshIndicator(
+            onRefresh: controller.getAttendance,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
               ),
-
-              /// SEARCH + FILTER
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Row(
-                    children: [
-                      Expanded(child: _buildSearchBar()),
-                      const SizedBox(width: 10),
-                      _buildFilterChip(),
-                    ],
+              slivers: [
+                /// PROGRAM INFO HEADER
+                SliverToBoxAdapter(
+                  child: _ProgramInfoHeader(
+                    name: program.name,
+                    description: program.description,
+                    date: program.date,
+                    batchName: program.batchId?.name,
                   ),
                 ),
+
+                /// ATTENDANCE SUMMARY BAR
+                SliverToBoxAdapter(
+                  child: _AttendanceSummaryBar(members: controller.members),
+                ),
+
+                /// SEARCH + FILTER
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Row(
+                      children: [
+                        Expanded(child: _buildSearchBar()),
+                        const SizedBox(width: 10),
+                        _buildFilterChip(),
+                      ],
+                    ),
+                  ),
+                ),
+
+                /// MEMBER LIST
+                _buildMemberSliver(),
+
+                /// BOTTOM PADDING
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
+            ),
+          );
+        }),
+        floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'scanQr',
+          onPressed: () => Get.to(() => const Scan()),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          icon: const Icon(PhosphorIconsFill.qrCode),
+          label: const Text(
+            'Scan QR',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showExitDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Unsaved Changes',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'You have modified member attendance. Do you want to save your progress before leaving?',
+          style: TextStyle(height: 1.4),
+        ),
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: AppColors.darkGrey)),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'Discard',
+                  style: TextStyle(color: AppColors.error),
+                ),
               ),
-
-              /// MEMBER LIST
-              _buildMemberSliver(),
-
-              /// BOTTOM PADDING
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  controller.updateAttendance();
+                },
+                child: const Text('Save & Exit'),
+              ),
             ],
           ),
-        );
-      }),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'scanQr',
-        onPressed: () => Get.to(() => const Scan()),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(PhosphorIconsFill.qrCode),
-        label: const Text(
-          'Scan QR',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+        ],
       ),
     );
   }
@@ -150,8 +227,8 @@ class ProgramDetails extends GetView<ProgramDetailsController> {
   Widget _buildMemberSliver() {
     return Obx(() {
       final grouped = controller.isSearch.value
-          ? controller.groupedFMembers
-          : controller.groupedMembers;
+          ? controller.groupedList(controller.filteredMembers)
+          : controller.groupedList(controller.members);
 
       if (grouped.isEmpty && !controller.isLoading.value) {
         return SliverFillRemaining(
@@ -360,7 +437,7 @@ class _InfoBadge extends StatelessWidget {
 // Attendance Summary Bar
 // ─────────────────────────────────────
 class _AttendanceSummaryBar extends StatelessWidget {
-  final List<AttendanceModel> members;
+  final List<AttendanceMember> members;
 
   const _AttendanceSummaryBar({required this.members});
 
@@ -466,7 +543,7 @@ class _SummaryPill extends StatelessWidget {
 // Attendance Tile
 // ─────────────────────────────────────
 class _AttendanceTile extends StatelessWidget {
-  final AttendanceModel member;
+  final AttendanceMember member;
   final ValueChanged<AttendanceType> onStatusChanged;
 
   const _AttendanceTile({required this.member, required this.onStatusChanged});

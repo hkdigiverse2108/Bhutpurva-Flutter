@@ -21,6 +21,16 @@ class ApiConstants {
   static const verifyOtp = "/auth/verify-otp";
   static const logout = "/auth/logout";
 
+  // location
+  static String location({String? typeFilter, String? parentId}) => _buildUrl(
+    "/location/dropdown",
+    {'typeFilter': typeFilter, 'parentIdFilter': parentId},
+  );
+
+  // branch
+  static String branches({String? search}) =>
+      _buildUrl("/branch/dropdown", {'search': search});
+
   // image
   static const image = "/upload"; // get, post, delete
 
@@ -102,4 +112,8 @@ class ApiConstants {
   static String getProgramById(String id) => "/program/$id";
   static String updateProgram = "/program/update";
   static String deleteProgram(String id) => "/program/$id";
+
+  // program attendance
+  static String programAttendance(String id) => "/attendance/program/$id";
+  static String updateAttendance = "/attendance/update";
 }

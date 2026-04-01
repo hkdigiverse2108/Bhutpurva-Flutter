@@ -3,8 +3,10 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:gurukul_bhutpurva/core/constants/app_colors.dart';
 import 'package:gurukul_bhutpurva/core/constants/enums.dart';
+import 'package:gurukul_bhutpurva/data/models/address/location_model.dart';
 import 'package:gurukul_bhutpurva/modules/member/controllers/member_update_controller.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/form_fields/common_text_form_field.dart';
+import 'package:gurukul_bhutpurva/shared/widgets/location_picker_form.dart';
 
 class MemberAddressDetails extends GetView<MemberUpdateController> {
   const MemberAddressDetails({super.key});
@@ -19,178 +21,54 @@ class MemberAddressDetails extends GetView<MemberUpdateController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// ================= CURRENT ADDRESS =================
-            Text(
-              "Current Address (હાલનું સરનામું)",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: AppColors.primary,
-              ),
-            ),
-            Divider(thickness: 2),
-            const Gap(12),
-
-            CommonTextFormField(
-              label: 'Full Address (સંપૂર્ણ સરનામું)',
-              initialValue: controller.currentAddress.value.fullAddress,
-              onChanged: (v) => controller.currentAddress.value = controller
-                  .currentAddress
-                  .value
-                  .copyWith(fullAddress: v),
-            ),
-            const Gap(12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CommonTextFormField(
-                    label: 'City (શહેર)',
-                    initialValue: controller.currentAddress.value.city,
-                    onChanged: (v) => controller.currentAddress.value =
-                        controller.currentAddress.value.copyWith(city: v),
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: CommonTextFormField(
-                    label: 'District (જિલ્લો)',
-                    initialValue: controller.currentAddress.value.district,
-                    onChanged: (v) => controller.currentAddress.value =
-                        controller.currentAddress.value.copyWith(district: v),
-                  ),
-                ),
-              ],
-            ),
-
-            const Gap(12),
-
-            CommonTextFormField(
-              fieldType: FieldType.dropdown,
-              label: 'Country (દેશ)',
-              dropdownItems: controller.countries,
-              dropdownValue: controller.currentAddress.value.country,
-              onDropdownChanged: (v) => controller.currentAddress.value =
-                  controller.currentAddress.value.copyWith(country: v!),
-            ),
-            const Gap(12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CommonTextFormField(
-                    fieldType: FieldType.dropdown,
-                    label: 'State (રાજ્ય)',
-                    dropdownItems: controller.states,
-                    dropdownValue: controller.currentAddress.value.state,
-                    onDropdownChanged: (v) => controller.currentAddress.value =
-                        controller.currentAddress.value.copyWith(state: v!),
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: CommonTextFormField(
-                    label: 'Pincode (પિનકોડ)',
-                    keyboardType: TextInputType.number,
-                    initialValue: controller.currentAddress.value.pincode,
-                    onChanged: (v) => controller.currentAddress.value =
-                        controller.currentAddress.value.copyWith(pincode: v),
-                  ),
-                ),
-              ],
-            ),
-
-            const Gap(32),
+            Obx(() => AddressFormWidget(
+                  index: 0,
+                  address: controller.currentAddress.value,
+                  title: "Current Address (હાલનું સરનામું)",
+                  onAddressChanged: (v) => controller.currentAddress.value =
+                      controller.currentAddress.value.copyWith(fullAddress: v),
+                  onPincodeChanged: (v) => controller.currentAddress.value =
+                      controller.currentAddress.value.copyWith(pincode: v),
+                  onCountryChanged: (id, name) => controller.onCountryChanged(
+                      controller.currentAddress, id, name),
+                  onStateChanged: (id, name) => controller.onStateChanged(
+                      controller.currentAddress, id, name),
+                  onDistrictChanged: (id, name) => controller.onDistrictChanged(
+                      controller.currentAddress, id, name),
+                  onCityChanged: (id, name) => controller.onCityChanged(
+                      controller.currentAddress, id, name),
+                )),
+            const Gap(16),
 
             /// ================= VILLAGE ADDRESS =================
-            Text(
-              "Village Address (ગામનું સરનામું)",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: AppColors.primary,
-              ),
-            ),
-            Divider(thickness: 2),
-            const Gap(12),
-
-            CommonTextFormField(
-              label: 'Full Address (સંપૂર્ણ સરનામું)',
-              initialValue: controller.villageAddress.value.fullAddress,
-              onChanged: (v) => controller.villageAddress.value = controller
-                  .villageAddress
-                  .value
-                  .copyWith(fullAddress: v),
-            ),
-            const Gap(12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CommonTextFormField(
-                    label: 'City (શહેર)',
-                    initialValue: controller.villageAddress.value.city,
-                    onChanged: (v) => controller.villageAddress.value =
-                        controller.villageAddress.value.copyWith(city: v),
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: CommonTextFormField(
-                    label: 'District (જિલ્લો)',
-                    initialValue: controller.villageAddress.value.district,
-                    onChanged: (v) => controller.villageAddress.value =
-                        controller.villageAddress.value.copyWith(district: v),
-                  ),
-                ),
-              ],
-            ),
-            const Gap(12),
-
-            CommonTextFormField(
-              fieldType: FieldType.dropdown,
-              label: 'Country (દેશ)',
-              dropdownItems: controller.countries,
-              dropdownValue: controller.villageAddress.value.country,
-              onDropdownChanged: (v) => controller.villageAddress.value =
-                  controller.villageAddress.value.copyWith(country: v!),
-            ),
-            const Gap(12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CommonTextFormField(
-                    fieldType: FieldType.dropdown,
-                    label: 'State (રાજ્ય)',
-                    dropdownItems: controller.states,
-                    dropdownValue: controller.villageAddress.value.state,
-                    onDropdownChanged: (v) => controller.villageAddress.value =
-                        controller.villageAddress.value.copyWith(state: v!),
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: CommonTextFormField(
-                    label: 'Pincode (પિનકોડ)',
-                    keyboardType: TextInputType.number,
-                    initialValue: controller.villageAddress.value.pincode,
-                    onChanged: (v) => controller.villageAddress.value =
-                        controller.villageAddress.value.copyWith(pincode: v),
-                  ),
-                ),
-              ],
-            ),
-            const Gap(32),
+            Obx(() => AddressFormWidget(
+                  index: 1,
+                  address: controller.villageAddress.value,
+                  title: "Village Address (ગામનું સરનામું)",
+                  onAddressChanged: (v) => controller.villageAddress.value =
+                      controller.villageAddress.value.copyWith(fullAddress: v),
+                  onPincodeChanged: (v) => controller.villageAddress.value =
+                      controller.villageAddress.value.copyWith(pincode: v),
+                  onCountryChanged: (id, name) => controller.onCountryChanged(
+                      controller.villageAddress, id, name),
+                  onStateChanged: (id, name) => controller.onStateChanged(
+                      controller.villageAddress, id, name),
+                  onDistrictChanged: (id, name) => controller.onDistrictChanged(
+                      controller.villageAddress, id, name),
+                  onCityChanged: (id, name) => controller.onCityChanged(
+                      controller.villageAddress, id, name),
+                )),
+            const Gap(16),
 
             Text(
               "Additional Address (વધારાનું સરનામું)",
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: AppColors.primary,
-              ),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: AppColors.primary,
+                  ),
             ),
-            Divider(thickness: 2),
+            const Divider(thickness: 2),
             const Gap(12),
 
             /// ADDRESS LIST
@@ -199,131 +77,38 @@ class MemberAddressDetails extends GetView<MemberUpdateController> {
                 children: List.generate(controller.otherAddressList.length, (
                   index,
                 ) {
-                  final address = controller.otherAddressList[index];
+                  final addressMap = controller.otherAddressList[index];
+                  final selectedType = addressMap['selectedType'] as RxString;
+                  final addressEntry = addressMap['address'] as Rx<AddressEntry>;
 
-                  return Card(
-                    elevation: 3,
-                    color: AppColors.lightGrey,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          /// HEADER
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Address ${index + 1}",
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () =>
-                                    controller.removeOtherAddress(index),
-                              ),
-                            ],
-                          ),
-                          const Gap(12),
-
-                          /// ADDRESS TYPE
-                          CommonTextFormField(
-                            fieldType: FieldType.dropdown,
-                            label: 'Address Type',
-                            hintText: 'Select',
-                            dropdownItems: controller.addressType,
-                            dropdownValue: address.value.addressType,
-                            onDropdownChanged: (v) {
-                              address.value = address.value.copyWith(
-                                addressType: v!,
-                              );
-                            },
-                          ),
-                          const Gap(12),
-
-                          /// FULL ADDRESS
-                          CommonTextFormField(
-                            label: 'Full Address',
-                            initialValue: address.value.fullAddress,
-                            onChanged: (v) => address.value = address.value
-                                .copyWith(fullAddress: v),
-                          ),
-                          const Gap(12),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CommonTextFormField(
-                                  label: 'City',
-                                  initialValue: address.value.city,
-                                  onChanged: (v) => address.value = address
-                                      .value
-                                      .copyWith(city: v),
-                                ),
-                              ),
-                              const Gap(12),
-                              Expanded(
-                                child: CommonTextFormField(
-                                  label: 'District',
-                                  initialValue: address.value.district,
-                                  onChanged: (v) => address.value = address
-                                      .value
-                                      .copyWith(district: v),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Gap(12),
-
-                          CommonTextFormField(
-                            fieldType: FieldType.dropdown,
-                            label: 'Country',
-                            dropdownItems: controller.countries,
-                            dropdownValue: address.value.country,
-                            onDropdownChanged: (v) => address.value = address
-                                .value
-                                .copyWith(country: v!),
-                          ),
-                          const Gap(12),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CommonTextFormField(
-                                  fieldType: FieldType.dropdown,
-                                  label: 'State',
-                                  dropdownItems: controller.states,
-                                  dropdownValue: address.value.state,
-                                  onDropdownChanged: (v) => address.value =
-                                      address.value.copyWith(state: v!),
-                                ),
-                              ),
-                              const Gap(12),
-                              Expanded(
-                                child: CommonTextFormField(
-                                  label: 'Pincode',
-                                  keyboardType: TextInputType.number,
-                                  initialValue: address.value.pincode,
-                                  onChanged: (v) => address.value = address
-                                      .value
-                                      .copyWith(pincode: v),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Gap(10),
-                        ],
-                      ),
-                    ),
-                  );
+                  return Obx(() => AddressFormWidget(
+                        index: index,
+                        address: addressEntry.value,
+                        title: "Address ${index + 1}",
+                        onRemove: () => controller.removeOtherAddress(index),
+                        topWidget: CommonTextFormField(
+                          fieldType: FieldType.dropdown,
+                          label: 'Address Type',
+                          hintText: 'Select',
+                          dropdownItems: controller.addressType,
+                          dropdownValue: selectedType.value,
+                          onDropdownChanged: (v) {
+                            selectedType.value = v!;
+                          },
+                        ),
+                        onAddressChanged: (v) => addressEntry.value =
+                            addressEntry.value.copyWith(fullAddress: v),
+                        onPincodeChanged: (v) => addressEntry.value =
+                            addressEntry.value.copyWith(pincode: v),
+                        onCountryChanged: (id, name) => controller.onCountryChanged(
+                            addressEntry, id, name),
+                        onStateChanged: (id, name) => controller.onStateChanged(
+                            addressEntry, id, name),
+                        onDistrictChanged: (id, name) => controller.onDistrictChanged(
+                            addressEntry, id, name),
+                        onCityChanged: (id, name) => controller.onCityChanged(
+                            addressEntry, id, name),
+                      ));
                 }),
               ),
             ),
@@ -344,3 +129,4 @@ class MemberAddressDetails extends GetView<MemberUpdateController> {
     );
   }
 }
+

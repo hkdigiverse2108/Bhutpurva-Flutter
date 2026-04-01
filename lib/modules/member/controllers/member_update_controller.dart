@@ -1,11 +1,16 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
-import 'package:gurukul_bhutpurva/data/models/address/address_model.dart';
+import 'package:gurukul_bhutpurva/core/mixins/location_dropdown_mixin.dart';
+import 'package:gurukul_bhutpurva/data/models/address/location_model.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
+import 'package:gurukul_bhutpurva/core/services/api_service.dart';
+import 'package:gurukul_bhutpurva/data/models/branch/branch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/class/class_model.dart';
 import 'package:intl/intl.dart';
 
-class MemberUpdateController extends GetxController {
+class MemberUpdateController extends GetxController with LocationDropdownMixin {
   static MemberUpdateController get instance => Get.find();
 
   final storageService = Get.find<StorageService>();
@@ -65,9 +70,9 @@ class MemberUpdateController extends GetxController {
   final class12 = ClassModel().obs;
 
   // Address Details
-  final currentAddress = AddressModel().obs;
-  final villageAddress = AddressModel().obs;
-  final List<Rx<AddressModel>> otherAddressList = <Rx<AddressModel>>[].obs;
+  final currentAddress = AddressEntry().obs;
+  final villageAddress = AddressEntry().obs;
+  final RxList<Map<String, dynamic>> otherAddressList = <Map<String, dynamic>>[].obs;
   final currentCityList = <String>['select', 'surat', 'other'].obs;
 
   // Secondary Details
@@ -127,13 +132,7 @@ class MemberUpdateController extends GetxController {
     'Skill & Hobbies',
   ];
 
-  final branch = [
-    'surat Gurukul',
-    'bharuch Gurukul',
-    'jasdan Gurukul',
-    'una Gurukul',
-    'new delhi Gurukul',
-  ].obs;
+  final branch = <BranchModel>[].obs;
 
   final List<String> addressType = [
     'factory',
@@ -164,7 +163,26 @@ class MemberUpdateController extends GetxController {
       (index) => (currentYear - index).toString(),
     );
 
+    loadCountriesFor(currentAddress);
+    loadCountriesFor(villageAddress);
+    getBranches();
+
     super.onInit();
+  }
+
+  final apiService = ApiService();
+
+  void getBranches() async {
+    try {
+      final res = await apiService.get(ApiConstants.branches());
+      if (res.status == 200) {
+        branch.value = (res.data as List<dynamic>)
+            .map((e) => BranchModel.fromJson(e))
+            .toList();
+      }
+    } catch (e) {
+      log(DateFormat.yMd().format(DateTime.now())); // Just a placeholder for logging
+    }
   }
 
   void onTabTap(int index) {
@@ -199,11 +217,18 @@ class MemberUpdateController extends GetxController {
   }
 
   void addOtherAddress() {
-    otherAddressList.add(AddressModel().obs);
+    final entry = AddressEntry().obs;
+    otherAddressList.add({
+      'selectedType': 'select'.obs,
+      'address': entry,
+    });
+    loadCountriesFor(entry);
   }
 
   void removeOtherAddress(int index) {
-    otherAddressList.removeAt(index);
+    if (index >= 0 && index < otherAddressList.length) {
+      otherAddressList.removeAt(index);
+    }
   }
 
   void submit() {
