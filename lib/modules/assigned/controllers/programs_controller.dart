@@ -17,7 +17,7 @@ class ProgramsController extends GetxController {
 
   final RxList<BatchStudentModel> members = <BatchStudentModel>[].obs;
   final RxList<BatchStudentModel> filteredMembers = <BatchStudentModel>[].obs;
-  final apiService = ApiService();
+  final apiService = ApiService.to;
 
   final currentIndex = 0.obs;
 

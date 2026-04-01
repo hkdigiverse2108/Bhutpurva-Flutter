@@ -18,7 +18,7 @@ class LoginController extends GetxController {
 
   final formKey = GlobalKey<FormState>();
 
-  final apiService = ApiService();
+  final apiService = ApiService.to;
 
   void navigateToPhone() {
     Get.toNamed(AppRoutes.phoneLogin);
@@ -27,7 +27,7 @@ class LoginController extends GetxController {
   void getOTP() async {
     FocusScope.of(Get.context!).unfocus();
     try {
-      if (formKey.currentState!.validate()) {
+      if (formKey.currentState?.validate() ?? false) {
         isLoading.value = true;
         ResModel response = await apiService.post(
           ApiConstants.sendOtp,
@@ -68,8 +68,7 @@ class LoginController extends GetxController {
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final String? idToken = googleAuth.idToken;
 
       if (idToken == null) {

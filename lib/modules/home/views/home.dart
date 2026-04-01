@@ -121,7 +121,7 @@ class HomePage extends GetView<HomeController> {
       FeatureItem("Assigned", Icons.task_alt, const [
         Color(0xFF66BB6A),
         Color(0xFF81C784),
-      ], onTap: () => Get.toNamed(AppRoutes.batchDetails)),
+      ], onTap: () => controller.navigateToAssigned()),
     ];
   }
 }

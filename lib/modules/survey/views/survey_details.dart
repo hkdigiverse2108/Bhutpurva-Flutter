@@ -237,20 +237,22 @@ class _ChoiceInputState extends State<_ChoiceInput> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: widget.options.map((option) {
-        return RadioListTile<String>(
-          title: Text(option),
-          value: option,
-          groupValue: selected,
-          activeColor: AppColors.primary,
-          contentPadding: EdgeInsets.zero,
-          onChanged: (val) {
-            setState(() => selected = val);
-            if (val != null) widget.onChanged(val);
-          },
-        );
-      }).toList(),
+    return RadioGroup<String>(
+      groupValue: selected,
+      onChanged: (val) {
+        setState(() => selected = val);
+        if (val != null) widget.onChanged(val);
+      },
+      child: Column(
+        children: widget.options.map((option) {
+          return RadioListTile<String>(
+            title: Text(option),
+            value: option,
+            activeColor: AppColors.primary,
+            contentPadding: EdgeInsets.zero,
+          );
+        }).toList(),
+      ),
     );
   }
 }

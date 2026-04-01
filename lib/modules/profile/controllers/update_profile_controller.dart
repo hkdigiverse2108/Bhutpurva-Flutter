@@ -15,6 +15,8 @@ import 'package:gurukul_bhutpurva/core/mixins/location_dropdown_mixin.dart';
 
 class UpdateProfileController extends GetxController with LocationDropdownMixin {
   final isUpdating = false.obs;
+  final isLoading = false.obs;
+  final displayImage = ''.obs;
 
   static UpdateProfileController get instance => Get.find();
   final Map<String, String> talentTranslations = {
@@ -148,7 +150,7 @@ class UpdateProfileController extends GetxController with LocationDropdownMixin 
   late ScrollController tabScrollController;
 
   final StorageService storage = Get.find();
-  final apiService = ApiService();
+  final apiService = ApiService.to;
 
   @override
   void onInit() {
@@ -164,8 +166,29 @@ class UpdateProfileController extends GetxController with LocationDropdownMixin 
     loadCountriesFor(currentAddress);
     loadCountriesFor(villageAddress);
     getBranches();
+    // Start by populating with what we have locally
     _populateData();
+    // Then fetch the latest from the server
+    fetchUserProfile();
     super.onInit();
+  }
+
+  Future<void> fetchUserProfile() async {
+    try {
+      isLoading.value = true;
+      final res = await apiService.get(ApiConstants.getUserById + storage.user.id!);
+      if (res.status == 200 && res.data != null) {
+        final user = UserModel.fromJson(res.data);
+        await storage.saveUser(user);
+        _populateData();
+      } else {
+        AppSnackbar.error(res.message ?? 'Failed to refresh profile data');
+      }
+    } catch (e) {
+      log('Error fetching user profile: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void getBranches() async {
@@ -183,6 +206,9 @@ class UpdateProfileController extends GetxController with LocationDropdownMixin 
 
   void _populateData() {
     final user = storage.user;
+
+    // Header Image
+    displayImage.value = user.image ?? '';
 
     // Primary Details
     nameController.text = user.name ?? '';
@@ -264,7 +290,7 @@ class UpdateProfileController extends GetxController with LocationDropdownMixin 
           ).then((_) {
             // After prefilling current address
           });
-        } else if (type.contains('village')) {
+        } else if (type.contains('village') || type.contains('permanent')) {
           prefillAddressEntry(
             villageAddress,
             savedCountry: address.country,

@@ -14,7 +14,7 @@ class HomeController extends GetxController {
   final isLeader = false.obs;
   final isBanner = false.obs;
 
-  final apiService = ApiService();
+  final apiService = ApiService.to;
   final storageService = Get.find<StorageService>();
 
   late String userBatchId;

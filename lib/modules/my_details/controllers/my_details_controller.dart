@@ -12,7 +12,7 @@ import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class MyDetailsController extends GetxController {
   final StorageService storage = Get.find<StorageService>();
-  final apiService = ApiService();
+  final apiService = ApiService.to;
 
   final majorDetailsFormKey = GlobalKey<FormState>();
   final classDetailsFormKey = GlobalKey<FormState>();
@@ -119,12 +119,26 @@ class MyDetailsController extends GetxController {
   }
 
   Future<void> saveDetails() async {
-    if (!majorDetailsFormKey.currentState!.validate()) return;
-    if (!classDetailsFormKey.currentState!.validate()) return;
+    final bool isMajorValid =
+        majorDetailsFormKey.currentState?.validate() ?? true;
+    final bool isClassValid =
+        classDetailsFormKey.currentState?.validate() ?? true;
+
+    if (!isMajorValid || !isClassValid) {
+      if (!isMajorValid) {
+        tab.value = 0;
+      } else if (!isClassValid) {
+        tab.value = 1;
+      }
+
+      AppSnackbar.error("Please correct the errors in the form before saving.");
+      return;
+    }
 
     isLoading.value = true;
     try {
       final payload = {
+        "userId": storage.user.id,
         "hrNo": hrNoController.text.trim(),
         "currentCity": currentCity.value == "select" ? null : currentCity.value,
         "class10": _mapToPayload(tenTh.value, "10"),
@@ -144,7 +158,7 @@ class MyDetailsController extends GetxController {
         },
       };
 
-      final response = await apiService.post(
+      final response = await apiService.put(
         ApiConstants.updateUser,
         body: payload,
         headers: {'authorization': storage.token!},

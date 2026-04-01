@@ -19,26 +19,28 @@ class MyDetails extends GetView<MyDetailsController> {
     return Scaffold(
       appBar: AppBar(title: const Text('My Details')),
       backgroundColor: AppColors.primaryBackground,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
-              child: MemberTile(
-                imageUrl: user.image ?? '',
-                name: '${user.name ?? ''} ${user.fatherName ?? ''}\n${user.surname ?? ''}',
-                phoneNumber: user.phoneNumber ?? '',
-                isMainUser: true,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
+            child: MemberTile(
+              imageUrl: user.image ?? '',
+              name:
+                  '${user.name ?? ''} ${user.fatherName ?? ''}\n${user.surname ?? ''}',
+              phoneNumber: user.phoneNumber ?? '',
+              isMainUser: true,
+            ),
+          ),
+          const CustomDetailsTab(),
+          Expanded(
+            child: Obx(
+              () => IndexedStack(
+                index: controller.tab.value,
+                children: const [MajorDetails(), ClassWiseStudyDetails()],
               ),
             ),
-            const CustomDetailsTab(),
-            Obx(
-              () => controller.tab.value == 0
-                  ? const MajorDetails()
-                  : const ClassWiseStudyDetails(),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),

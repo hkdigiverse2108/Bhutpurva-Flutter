@@ -27,7 +27,7 @@ class ProgramDetailsController extends GetxController {
   final RxList<AttendanceMember> members = <AttendanceMember>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool hasChanges = false.obs;
-  final apiService = ApiService();
+  final apiService = ApiService.to;
   late ProgramModel program;
   late String attendanceId;
 

@@ -8,7 +8,7 @@ import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceController extends GetxController {
-  final apiSirvices = ApiService();
+  final apiService = ApiService.to;
   final StorageService storage = Get.find();
 
   final isLoading = false.obs;
@@ -35,10 +35,16 @@ class AttendanceController extends GetxController {
     return groups;
   }
 
+  @override
+  void onInit() {
+    super.onInit();
+    getAttendance();
+  }
+
   void getAttendance() async {
     try {
       isLoading.value = true;
-      final ResModel res = await apiSirvices.get(
+      final ResModel res = await apiService.get(
         ApiConstants.getAttendanceById(storage.user.id ?? ""),
       );
       if (res.status == 200) {

@@ -10,10 +10,10 @@ class TithiCalenderController extends GetxController {
   var tithiCalender = Rx<TithiCalenderModel?>(null);
 
   var isLoading = false.obs;
-  final apiService = ApiService();
+  final apiService = ApiService.to;
 
   /// 0 = January
-  final selectedMonthIndex = DateTime.now().month.obs..value -= 1;
+  final selectedMonthIndex = (DateTime.now().month - 1).obs;
 
   @override
   void onInit() {
@@ -47,7 +47,8 @@ class TithiCalenderController extends GetxController {
   }
 
   void nextMonth() {
-    if (selectedMonthIndex.value < 11) {
+    final calendarLength = tithiCalender.value?.calender.length ?? 12;
+    if (selectedMonthIndex.value < calendarLength - 1) {
       selectedMonthIndex.value++;
     } else {
       selectedMonthIndex.value = 0;
@@ -55,10 +56,11 @@ class TithiCalenderController extends GetxController {
   }
 
   void prevMonth() {
+    final calendarLength = tithiCalender.value?.calender.length ?? 12;
     if (selectedMonthIndex.value > 0) {
       selectedMonthIndex.value--;
     } else {
-      selectedMonthIndex.value = 11;
+      selectedMonthIndex.value = calendarLength - 1;
     }
   }
 

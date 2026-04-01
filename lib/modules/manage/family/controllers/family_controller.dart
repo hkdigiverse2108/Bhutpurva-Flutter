@@ -1,10 +1,43 @@
+import 'dart:developer';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
+import 'package:gurukul_bhutpurva/core/services/api_service.dart';
+import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
+import 'package:gurukul_bhutpurva/data/models/res/res_model.dart';
+import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
+class FamilyMemberLocal {
+  final String memberId;
+  final String name;
+  final String phone;
+  final String image;
+  String relationship;
+
+  FamilyMemberLocal({
+    required this.memberId,
+    required this.name,
+    required this.phone,
+    required this.image,
+    required this.relationship,
+  });
+
+  Map<String, dynamic> toJson() => {
+    "memberId": memberId,
+    "relationship": relationship.toLowerCase(),
+  };
+}
+
 class FamilyController extends GetxController {
-  final familyMembers = [].obs;
+  final apiService = ApiService.to;
+  final storageService = Get.find<StorageService>();
+
+  final familyMembers = <FamilyMemberLocal>[].obs;
+  final RxString? familyId = RxString('');
+  final RxBool isLoading = false.obs;
+
   final relation = ''.obs;
   final countryCode = '+91'.obs;
   final isoCode = 'IN'.obs;
@@ -17,10 +50,19 @@ class FamilyController extends GetxController {
     'Mother',
     'Brother',
     'Sister',
-    'Spouse',
-    'Son',
-    'Daughter',
+    'Uncle',
+    'Aunt',
+    'Cousin',
+    'Grandmother',
+    'Grandfather',
+    'Other',
   ];
+
+  @override
+  void onInit() {
+    super.onInit();
+    getFamily();
+  }
 
   void selectCountry(BuildContext context) {
     showCountryPicker(
@@ -28,9 +70,9 @@ class FamilyController extends GetxController {
       showPhoneCode: true,
       onSelect: (Country country) {
         countryCode.value = '+${country.phoneCode}';
-        isoCode.value = country.countryCode; // ✅ FIX
+        isoCode.value = country.countryCode;
         countryFlag.value = country.flagEmoji;
-        phoneError.value = ''; // clear previous error
+        phoneError.value = '';
       },
     );
   }
@@ -67,7 +109,6 @@ class FamilyController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// DRAG HANDLE
             Center(
               child: Container(
                 width: 40,
@@ -79,16 +120,11 @@ class FamilyController extends GetxController {
                 ),
               ),
             ),
-
-            /// TITLE
             const Text(
               'Add Family Member',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
-
             const SizedBox(height: 20),
-
-            /// RELATION DROPDOWN
             Obx(
               () => DropdownButtonFormField<String>(
                 initialValue: relation.value.isEmpty ? null : relation.value,
@@ -107,13 +143,9 @@ class FamilyController extends GetxController {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
-            /// MOBILE INPUT
             Row(
               children: [
-                /// COUNTRY CODE
                 GestureDetector(
                   onTap: () => selectCountry(Get.context!),
                   child: Obx(
@@ -145,10 +177,7 @@ class FamilyController extends GetxController {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
-                /// MOBILE FIELD
                 Expanded(
                   child: TextFormField(
                     controller: mobileController,
@@ -177,10 +206,7 @@ class FamilyController extends GetxController {
                     )
                   : const SizedBox.shrink(),
             ),
-
             const SizedBox(height: 24),
-
-            /// SEARCH BUTTON
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -205,9 +231,49 @@ class FamilyController extends GetxController {
     );
   }
 
-  void searchMember() {
+  void getFamily() async {
+    try {
+      isLoading.value = true;
+      final ResModel res = await apiService.get(ApiConstants.getFamily);
+      if (res.status == 200) {
+        familyId?.value = res.data['_id'];
+        final List membersData = res.data['members'] ?? [];
+        familyMembers.assignAll(
+          membersData.map((m) {
+            final dynamic memberIdVal = m['memberId'];
+
+            if (memberIdVal is Map) {
+              return FamilyMemberLocal(
+                memberId: memberIdVal['_id']?.toString() ?? '',
+                name: memberIdVal['name'] ?? '',
+                phone: memberIdVal['phoneNumber'] ?? '',
+                image: memberIdVal['image'] ?? '',
+                relationship: m['relationship'] ?? 'other',
+              );
+            } else {
+              return FamilyMemberLocal(
+                memberId: memberIdVal?.toString() ?? '',
+                name: 'Family Member',
+                phone: '',
+                image: '',
+                relationship: m['relationship'] ?? 'other',
+              );
+            }
+          }).toList(),
+        );
+      }
+    } catch (e) {
+      log("Error fetching family: $e");
+      familyId?.value = '';
+      familyMembers.clear();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void searchMember() async {
     if (relation.value.isEmpty) {
-      Get.snackbar('Error', 'Please select relation');
+      AppSnackbar.error('Please select relation');
       return;
     }
 
@@ -218,8 +284,84 @@ class FamilyController extends GetxController {
 
     if (!validatePhone()) return;
 
-    // ✅ SAFE TO CALL API HERE
+    try {
+      isLoading.value = true;
+      // final fullPhone = "${countryCode.value}${mobileController.text}";
+      final fullPhone = mobileController.text;
+      final ResModel res = await apiService.get(
+        "${ApiConstants.searchUser}?phone=$fullPhone",
+      );
 
-    Get.back();
+      if (res.status == 200) {
+        final userData = res.data;
+
+        // Check if already in list
+        if (familyMembers.any((m) => m.memberId == userData['_id'])) {
+          AppSnackbar.error("Member already added");
+          return;
+        }
+
+        familyMembers.add(
+          FamilyMemberLocal(
+            memberId: userData['_id']?.toString() ?? '',
+            name: userData['name'] ?? '',
+            phone: userData['phoneNumber'] ?? '',
+            image: userData['image'] ?? '',
+            relationship: relation.value,
+          ),
+        );
+
+        // Reset and close
+        mobileController.clear();
+        relation.value = '';
+        Get.back();
+      }
+    } catch (e) {
+      AppSnackbar.error(e.toString().replaceAll("Exception: ", ""));
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void removeMember(int index) {
+    if (index >= 0 && index < familyMembers.length) {
+      familyMembers.removeAt(index);
+    }
+  }
+
+  void saveFamily() async {
+    if (familyMembers.isEmpty) {
+      AppSnackbar.error("Please add at least one family member");
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      final List membersPayload = familyMembers.map((m) => m.toJson()).toList();
+
+      final body = {
+        "userId": storageService.user.id,
+        "members": membersPayload,
+      };
+
+      ResModel res;
+      if (familyId?.value == null || familyId!.value.isEmpty) {
+        res = await apiService.post(ApiConstants.addFamily, body: body);
+      } else {
+        res = await apiService.put(
+          ApiConstants.updateFamily,
+          body: {"familyId": familyId?.value, ...body},
+        );
+      }
+
+      if (res.status == 200 || res.status == 201) {
+        AppSnackbar.success("Family updated successfully!");
+        getFamily(); // Refresh to ensure we have latest data/IDs
+      }
+    } catch (e) {
+      AppSnackbar.error("Error saving family: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

@@ -63,126 +63,132 @@ class MemberUpdate extends GetView<MemberUpdateController> {
           ),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(AppSize.cardRadiusLg),
-            topRight: Radius.circular(AppSize.cardRadiusLg),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Edit Access Indicator
-            // Obx(
-            //   () => Container(
-            //     padding: const EdgeInsets.symmetric(vertical: 8),
-            //     color: controller.hasEditAccess.value
-            //         ? Colors.blue.shade50
-            //         : Colors.grey.shade200,
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.center,
-            //       children: [
-            //         Icon(
-            //           controller.hasEditAccess.value
-            //               ? Icons.edit
-            //               : Icons.lock_outline,
-            //           size: 16,
-            //           color: controller.hasEditAccess.value
-            //               ? Colors.blue
-            //               : Colors.grey,
-            //         ),
-            //         const SizedBox(width: 8),
-            //         Text(
-            //           controller.hasEditAccess.value
-            //               ? 'You have edit access'
-            //               : 'You do not have edit access',
-            //           style: TextStyle(
-            //             color: controller.hasEditAccess.value
-            //                 ? Colors.blue.shade800
-            //                 : Colors.grey.shade800,
-            //             fontWeight: FontWeight.w500,
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
-            if (!isKeyboardOpen)
-              Padding(
-                padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
-                child: const MemberTile(
-                  imageUrl: '',
-                  name: 'KARTIK KAMALESH BHAI\nGONDALIYA',
-                  phoneNumber: '919106360330',
-                  isMainUser: true,
+      body: Obx(
+        () => controller.isLoading.value
+            ? const Center(child: CircularProgressIndicator())
+            : Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppSize.cardRadiusLg),
+                    topRight: Radius.circular(AppSize.cardRadiusLg),
+                  ),
                 ),
-              ),
-            const AnimatedMemberTabs(),
-            const SizedBox(height: 12),
-
-            // Rest of the form
-            Expanded(
-              child: PageView(
-                controller: controller.pageController,
-                onPageChanged: controller.onPageChanged,
-                physics: controller.hasEditAccess.value
-                    ? const PageScrollPhysics()
-                    : const NeverScrollableScrollPhysics(),
-                children: [
-                  MemberPrimaryDetails(),
-                  MemberMajorDetails(),
-                  MemberAddressDetails(),
-                  MemberSecondaryDetails(),
-                  MemberClassWiseStudyDetails(),
-                  MemberSkillAndHobbies(),
-                ],
-              ),
-            ),
-
-            // Navigation buttons
-            if (controller.hasEditAccess.value) ...[
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
+                child: Column(
                   children: [
-                    Obx(
-                      () => ElevatedButton(
-                        onPressed: controller.currentIndex.value == 0
-                            ? null
-                            : () => controller.onTabTap(
-                                controller.currentIndex.value - 1,
-                              ),
-                        child: const Text("Previous"),
-                      ),
-                    ),
-                    const Spacer(),
-                    Obx(
-                      () => ElevatedButton(
-                        onPressed:
-                            controller.currentIndex.value ==
-                                controller.tabs.length - 1
-                            ? () => controller.submit()
-                            : () => controller.onTabTap(
-                                controller.currentIndex.value + 1,
-                              ),
-                        child: Text(
-                          controller.currentIndex.value ==
-                                  controller.tabs.length - 1
-                              ? 'Submit'
-                              : 'Save & Next',
+                    // Edit Access Indicator
+                    // Obx(
+                    //   () => Container(
+                    //     padding: const EdgeInsets.symmetric(vertical: 8),
+                    //     color: controller.hasEditAccess.value
+                    //         ? Colors.blue.shade50
+                    //         : Colors.grey.shade200,
+                    //     child: Row(
+                    //       mainAxisAlignment: MainAxisAlignment.center,
+                    //       children: [
+                    //         Icon(
+                    //           controller.hasEditAccess.value
+                    //               ? Icons.edit
+                    //               : Icons.lock_outline,
+                    //           size: 16,
+                    //           color: controller.hasEditAccess.value
+                    //               ? Colors.blue
+                    //               : Colors.grey,
+                    //         ),
+                    //         const SizedBox(width: 8),
+                    //         Text(
+                    //           controller.hasEditAccess.value
+                    //               ? 'You have edit access'
+                    //               : 'You do not have edit access',
+                    //           style: TextStyle(
+                    //             color: controller.hasEditAccess.value
+                    //                 ? Colors.blue.shade800
+                    //                 : Colors.grey.shade800,
+                    //             fontWeight: FontWeight.w500,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
+                    if (!isKeyboardOpen)
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(top: 16, right: 16, left: 16),
+                        child: Obx(
+                          () => MemberTile(
+                            imageUrl: controller.displayImage.value,
+                            name:
+                                '${controller.nameController.text} ${controller.fatherNameController.text}\n${controller.surnameController.text}'
+                                    .trim(),
+                            phoneNumber: controller.phoneController.text,
+                            isMainUser: true,
+                          ),
                         ),
                       ),
+                    const AnimatedMemberTabs(),
+                    const SizedBox(height: 12),
+                    // Rest of the form
+                    Expanded(
+                      child: PageView(
+                        controller: controller.pageController,
+                        onPageChanged: controller.onPageChanged,
+                        physics: controller.hasEditAccess.value
+                            ? const PageScrollPhysics()
+                            : const NeverScrollableScrollPhysics(),
+                        children: [
+                          MemberPrimaryDetails(),
+                          MemberMajorDetails(),
+                          MemberAddressDetails(),
+                          MemberSecondaryDetails(),
+                          MemberClassWiseStudyDetails(),
+                          MemberSkillAndHobbies(),
+                        ],
+                      ),
                     ),
+                    // Navigation buttons
+                    if (controller.hasEditAccess.value) ...[
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Obx(
+                              () => ElevatedButton(
+                                onPressed: controller.currentIndex.value == 0
+                                    ? null
+                                    : () => controller.onTabTap(
+                                          controller.currentIndex.value - 1,
+                                        ),
+                                child: const Text("Previous"),
+                              ),
+                            ),
+                            const Spacer(),
+                            Obx(
+                              () => ElevatedButton(
+                                onPressed: controller.currentIndex.value ==
+                                        controller.tabs.length - 1
+                                    ? () => controller.submit()
+                                    : () => controller.onTabTap(
+                                          controller.currentIndex.value + 1,
+                                        ),
+                                child: Text(
+                                  controller.currentIndex.value ==
+                                          controller.tabs.length - 1
+                                      ? 'Submit'
+                                      : 'Save & Next',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Gap(16),
+                    ],
                   ],
                 ),
               ),
-              const Gap(16),
-            ],
-          ],
-        ),
       ),
     );
   }

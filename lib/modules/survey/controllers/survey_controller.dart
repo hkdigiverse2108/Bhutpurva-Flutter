@@ -9,7 +9,7 @@ import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class SurveyController extends GetxController {
   final RxBool isLoading = false.obs;
-  final apiSirvices = ApiService();
+  final apiService = ApiService.to;
 
   final RxList<SurveyModel> surveys = <SurveyModel>[].obs;
 
@@ -22,7 +22,7 @@ class SurveyController extends GetxController {
   Future<void> fetchSurveys() async {
     try {
       isLoading.value = true;
-      final ResModel res = await apiSirvices.get(ApiConstants.surveys);
+      final ResModel res = await apiService.get(ApiConstants.surveys);
       log("Survey API Response Status: ${res.status}");
       log("Survey API Response Data Type: ${res.data.runtimeType}");
 

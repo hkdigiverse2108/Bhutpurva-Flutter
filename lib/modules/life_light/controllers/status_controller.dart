@@ -7,7 +7,7 @@ import 'package:gurukul_bhutpurva/data/models/res/res_model.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class StatusController extends GetxController {
-  final apiSirvices = ApiService();
+  final apiService = ApiService.to;
   final StorageService storage = Get.find();
 
   final isLoading = false.obs;
@@ -22,7 +22,7 @@ class StatusController extends GetxController {
   void getLifeLight() async {
     try {
       isLoading.value = true;
-      final ResModel res = await apiSirvices.get(
+      final ResModel res = await apiService.get(
         ApiConstants.getLifeLightById(storage.user.id ?? ""),
       );
       if (res.status == 200) {

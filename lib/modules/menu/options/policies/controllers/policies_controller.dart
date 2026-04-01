@@ -12,7 +12,7 @@ class PoliciesController extends GetxController {
   final isLoading = false.obs;
   final isTermsLoading = false.obs;
 
-  final apiSirvices = ApiService();
+  final apiService = ApiService.to;
 
   @override
   void onInit() {
@@ -24,7 +24,7 @@ class PoliciesController extends GetxController {
   void getAppPolicy() async {
     isLoading.value = true;
     try {
-      final ResModel res = await apiSirvices.get(ApiConstants.appPolicy);
+      final ResModel res = await apiService.get(ApiConstants.appPolicy);
 
       if (res.status == 200) {
         if (res.data == null) {
@@ -46,7 +46,7 @@ class PoliciesController extends GetxController {
   void getAppTerms() async {
     isTermsLoading.value = true;
     try {
-      final ResModel res = await apiSirvices.get(ApiConstants.appTerms);
+      final ResModel res = await apiService.get(ApiConstants.appTerms);
 
       if (res.status == 200) {
         if (res.data == null) {

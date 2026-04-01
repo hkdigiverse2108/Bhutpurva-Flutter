@@ -12,11 +12,20 @@ class TithiCalender extends GetView<TithiCalenderController> {
     return Scaffold(
       appBar: AppBar(title: const Text('Tithi Calendar'), centerTitle: true),
       body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.tithiCalender.value == null) {
+          return const Center(child: Text('No calendar data available'));
+        }
+
         final imagePath = controller
             .tithiCalender
             .value
             ?.calender[controller.selectedMonthIndex.value]
             .image;
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -36,7 +45,7 @@ class TithiCalender extends GetView<TithiCalenderController> {
                   ],
                 ),
                 child: Text(
-                  'Tithi Calendar ${controller.tithiCalender.value?.year}',
+                  'Tithi Calendar ${controller.tithiCalender.value!.year}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 18,
@@ -111,11 +120,10 @@ class TithiCalender extends GetView<TithiCalenderController> {
                 runSpacing: 12,
                 alignment: WrapAlignment.center,
                 children: List.generate(
-                  controller.tithiCalender.value?.calender.length ?? 0,
+                  controller.tithiCalender.value!.calender.length,
                   (index) => _monthChip(
                     title:
-                        controller.tithiCalender.value?.calender[index].month ??
-                        '',
+                        controller.tithiCalender.value!.calender[index].month,
                     isSelected: controller.selectedMonthIndex.value == index,
                     onTap: () => controller.selectMonth(index),
                   ),

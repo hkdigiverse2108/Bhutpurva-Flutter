@@ -15,7 +15,7 @@ class AddressFormWidget extends StatelessWidget {
   final Widget? topWidget;
 
   const AddressFormWidget({
-    Key? key,
+    super.key,
     required this.index,
     required this.address,
     required this.title,
@@ -27,7 +27,7 @@ class AddressFormWidget extends StatelessWidget {
     required this.onAddressChanged,
     required this.onPincodeChanged,
     this.topWidget,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,10 +64,7 @@ class AddressFormWidget extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            if (topWidget != null) ...[
-              topWidget!,
-              const SizedBox(height: 16),
-            ],
+            if (topWidget != null) ...[topWidget!, const SizedBox(height: 16)],
 
             // Base Text Fields
             TextFormField(
@@ -77,7 +74,10 @@ class AddressFormWidget extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               maxLines: 2,
               onChanged: onAddressChanged,
@@ -93,7 +93,9 @@ class AddressFormWidget extends StatelessWidget {
               isEnabled: true,
               onChanged: (id) {
                 if (id != null) {
-                  final name = address.countries.firstWhere((e) => e.id == id).name;
+                  final name = address.countries
+                      .firstWhere((e) => e.id == id)
+                      .name;
                   onCountryChanged(id, name);
                 }
               },
@@ -108,7 +110,9 @@ class AddressFormWidget extends StatelessWidget {
               isEnabled: address.selectedCountryId != null,
               onChanged: (id) {
                 if (id != null) {
-                  final name = address.states.firstWhere((e) => e.id == id).name;
+                  final name = address.states
+                      .firstWhere((e) => e.id == id)
+                      .name;
                   onStateChanged(id, name);
                 }
               },
@@ -123,7 +127,9 @@ class AddressFormWidget extends StatelessWidget {
               isEnabled: address.selectedStateId != null,
               onChanged: (id) {
                 if (id != null) {
-                  final name = address.districts.firstWhere((e) => e.id == id).name;
+                  final name = address.districts
+                      .firstWhere((e) => e.id == id)
+                      .name;
                   onDistrictChanged(id, name);
                 }
               },
@@ -138,7 +144,9 @@ class AddressFormWidget extends StatelessWidget {
               isEnabled: address.selectedDistrictId != null,
               onChanged: (id) {
                 if (id != null) {
-                  final name = address.cities.firstWhere((e) => e.id == id).name;
+                  final name = address.cities
+                      .firstWhere((e) => e.id == id)
+                      .name;
                   onCityChanged(id, name);
                 }
               },
@@ -152,7 +160,10 @@ class AddressFormWidget extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               keyboardType: TextInputType.number,
               onChanged: onPincodeChanged,
@@ -186,25 +197,27 @@ class AddressFormWidget extends StatelessWidget {
               ],
             )
           : DropdownButtonFormField<String>(
-              value: value,
+              initialValue: value,
               isExpanded: true,
               decoration: InputDecoration(
                 labelText: label,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               hint: Text(
-                isEnabled ? 'Select $label' : 'Select ${_previousLevel(label)} first',
+                isEnabled
+                    ? 'Select $label'
+                    : 'Select ${_previousLevel(label)} first',
               ),
               items: items.map((loc) {
                 return DropdownMenuItem(
                   value: loc.id,
-                  child: Text(
-                    loc.name,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(loc.name, overflow: TextOverflow.ellipsis),
                 );
               }).toList(),
               onChanged: isEnabled ? onChanged : null,

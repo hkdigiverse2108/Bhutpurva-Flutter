@@ -21,7 +21,7 @@ import 'package:image_picker/image_picker.dart';
 
 class ProfileController extends GetxController {
   final StorageService storage = Get.find();
-  final apiService = ApiService();
+  final apiService = ApiService.to;
 
   final uploadingImage = false.obs;
 

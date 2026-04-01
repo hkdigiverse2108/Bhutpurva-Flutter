@@ -47,6 +47,9 @@ class ApiConstants {
   static const lifeLight = "/lifeLight/add";
   static String getLifeLightById(String id) => "/lifeLight/user/$id";
 
+  // anubhuti
+  static const sendAnubhuti = "/anubhuti/create";
+
   // survey
   static const surveys = "/survey/get";
   static String surveyById(String id) => "/survey/get/$id";
@@ -116,4 +119,19 @@ class ApiConstants {
   // program attendance
   static String programAttendance(String id) => "/attendance/program/$id";
   static String updateAttendance = "/attendance/update";
+
+  // monitors
+  static String monitors({int page = 1, int? limit, String? batchFilter}) {
+    return _buildUrl('/batch/get-monitors', {
+      'page': page,
+      'limit': limit,
+      'batchFilter': batchFilter,
+    });
+  }
+
+  // family
+  static const String searchUser = "/user/search";
+  static const String addFamily = "/family/add";
+  static const String updateFamily = "/family/update";
+  static const String getFamily = "/family/get";
 }

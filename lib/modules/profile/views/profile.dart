@@ -33,6 +33,7 @@ class Profile extends GetView<ProfileController> {
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             color: Theme.of(context).appBarTheme.foregroundColor,
             fontWeight: FontWeight.w500,
+            fontSize: 18,
             letterSpacing: 0.5,
           ),
         ),

@@ -20,88 +20,108 @@ class UpdateProfile extends GetView<UpdateProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Update Profile')),
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(AppSize.cardRadiusLg),
-            topRight: Radius.circular(AppSize.cardRadiusLg),
-          ),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
-              child: MemberTile(
-                imageUrl: controller.storage.user.image ?? '',
-                name: controller.fullName,
-                phoneNumber: controller.storage.user.phoneNumber ?? '',
-                isMainUser: true,
-              ),
-            ),
-            const AnimatedProfileTabs(),
-            const SizedBox(height: 12),
-            Expanded(
-              child: PageView(
-                controller: controller.pageController,
-                onPageChanged: controller.onPageChanged,
-                children: [
-                  UpdatePrimaryDetails(),
-                  UpdateMajorDetails(),
-                  UpdateClassWiseStudyDetails(),
-                  UpdateAddressDetails(),
-                  UpdateSecondaryDetails(),
-                  UpdateSkillAndHobbies(),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
+      body: Obx(
+        () => controller.isLoading.value
+            ? const Center(child: CircularProgressIndicator())
+            : Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppSize.cardRadiusLg),
+                    topRight: Radius.circular(AppSize.cardRadiusLg),
+                  ),
+                ),
+                child: Column(
                   children: [
-                    Obx(
-                      () => ElevatedButton(
-                        onPressed: controller.currentIndex.value == 0
-                            ? null
-                            : () => controller.onTabTap(
-                                controller.currentIndex.value - 1,
-                              ),
-                        child: Text("Previous"),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 16,
+                        right: 16,
+                        left: 16,
+                      ),
+                      child: Obx(
+                        () => MemberTile(
+                          imageUrl: controller.displayImage.value,
+                          name:
+                              '${controller.nameController.text} ${controller.fatherNameController.text}\n${controller.surnameController.text}'
+                                  .trim()
+                                  .toUpperCase(),
+                          phoneNumber: controller.phoneController.text,
+                          isMainUser: true,
+                        ),
                       ),
                     ),
-                    const Spacer(),
-                    Obx(
-                      () => ElevatedButton(
-                        onPressed:
-                            controller.currentIndex.value ==
-                                controller.tabs.length - 1
-                            ? controller.isUpdating.value
-                                  ? null
-                                  : () => controller.submit()
-                            : () => controller.onTabTap(
-                                controller.currentIndex.value + 1,
+                    const AnimatedProfileTabs(),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: PageView(
+                        controller: controller.pageController,
+                        onPageChanged: controller.onPageChanged,
+                        children: [
+                          UpdatePrimaryDetails(),
+                          UpdateMajorDetails(),
+                          UpdateClassWiseStudyDetails(),
+                          UpdateAddressDetails(),
+                          UpdateSecondaryDetails(),
+                          UpdateSkillAndHobbies(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: const BoxDecoration(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Obx(
+                              () => ElevatedButton(
+                                onPressed: controller.currentIndex.value == 0
+                                    ? null
+                                    : () => controller.onTabTap(
+                                        controller.currentIndex.value - 1,
+                                      ),
+                                child: const Text("Previous"),
                               ),
-                        child: controller.isUpdating.value
-                            ? const CircularProgressIndicator()
-                            : Text(
-                                controller.currentIndex.value ==
+                            ),
+                            const Spacer(),
+                            Obx(
+                              () => ElevatedButton(
+                                onPressed:
+                                    controller.currentIndex.value ==
                                         controller.tabs.length - 1
-                                    ? 'Submit'
-                                    : 'Save & Next',
+                                    ? controller.isUpdating.value
+                                          ? null
+                                          : () => controller.submit()
+                                    : () => controller.onTabTap(
+                                        controller.currentIndex.value + 1,
+                                      ),
+                                child: controller.isUpdating.value
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : Text(
+                                        controller.currentIndex.value ==
+                                                controller.tabs.length - 1
+                                            ? 'Submit'
+                                            : 'Save & Next',
+                                      ),
                               ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                    const Gap(16),
                   ],
                 ),
               ),
-            ),
-            const Gap(16),
-          ],
-        ),
       ),
     );
   }

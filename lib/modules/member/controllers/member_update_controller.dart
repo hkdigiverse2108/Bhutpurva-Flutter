@@ -8,6 +8,9 @@ import 'package:gurukul_bhutpurva/core/constants/api_constants.dart';
 import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/data/models/branch/branch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/class/class_model.dart';
+import 'package:gurukul_bhutpurva/core/constants/enums.dart';
+import 'package:gurukul_bhutpurva/data/models/user/user_model.dart';
+import 'package:gurukul_bhutpurva/data/models/member/member_model.dart';
 import 'package:intl/intl.dart';
 
 class MemberUpdateController extends GetxController with LocationDropdownMixin {
@@ -29,6 +32,8 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   // New fields for member update
   final hasEditAccess = false.obs;
   final isVerified = false.obs;
+  final isLoading = false.obs;
+  String? targetUserId;
 
   late final List<String> passingYears;
   late final List<String> hostels = [
@@ -46,6 +51,7 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   final emailController = TextEditingController();
   final whatsappNumberController = TextEditingController();
   final gender = 'Male'.obs;
+  final displayImage = ''.obs;
 
   // Major Details
   final hrNoController = TextEditingController(text: 'Major HR No');
@@ -72,7 +78,8 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   // Address Details
   final currentAddress = AddressEntry().obs;
   final villageAddress = AddressEntry().obs;
-  final RxList<Map<String, dynamic>> otherAddressList = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> otherAddressList =
+      <Map<String, dynamic>>[].obs;
   final currentCityList = <String>['select', 'surat', 'other'].obs;
 
   // Secondary Details
@@ -150,8 +157,21 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
     pageController = PageController();
     tabScrollController = ScrollController();
 
-    // Initialize with member data if provided
-    final memberData = Get.arguments;
+    final dynamic memberData = Get.arguments;
+
+    if (memberData is UserModel) {
+      targetUserId = memberData.id;
+      _populateFields(memberData);
+    } else if (memberData is String && memberData.isNotEmpty) {
+      targetUserId = memberData;
+      _fetchMemberDetails(memberData);
+    } else if (memberData is MemberModel) {
+      targetUserId = memberData.id;
+      _fetchMemberDetails(memberData.id);
+    } else {
+      loadCountriesFor(currentAddress);
+      loadCountriesFor(villageAddress);
+    }
 
     if (storageService.isLeader || storageService.isConvener) {
       hasEditAccess.value = true;
@@ -163,14 +183,206 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
       (index) => (currentYear - index).toString(),
     );
 
-    loadCountriesFor(currentAddress);
-    loadCountriesFor(villageAddress);
     getBranches();
 
     super.onInit();
   }
 
-  final apiService = ApiService();
+  Future<void> _fetchMemberDetails(String id) async {
+    try {
+      isLoading.value = true;
+      final res = await apiService.get(ApiConstants.getUserById + id);
+      if (res.status == 200 && res.data != null) {
+        _populateFields(UserModel.fromJson(res.data));
+      } else {
+        Get.snackbar(
+          'Error',
+          res.message ?? 'Failed to fetch member details',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      log('Error fetching member details: $e');
+      Get.snackbar(
+        'Error',
+        'Something went wrong while fetching member data',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _populateFields(UserModel user) async {
+    // Primary Details
+    displayImage.value = user.image ?? '';
+    nameController.text = user.name ?? '';
+    fatherNameController.text = user.fatherName ?? '';
+    surnameController.text = user.surname ?? '';
+    phoneController.text = user.phoneNumber ?? '';
+    emailController.text = user.email ?? '';
+    whatsappNumberController.text = user.whatsappNumber ?? '';
+
+    // Normalize Gender
+    final userGender = user.gender?.toLowerCase() ?? 'male';
+    if (userGender == 'female') {
+      gender.value = 'Female';
+    } else if (userGender == 'other') {
+      gender.value = 'Other';
+    } else {
+      gender.value = 'Male';
+    }
+
+    isVerified.value = user.isVerified ?? false;
+
+    // Major Details
+    hrNoController.text = user.hrNo ?? '';
+
+    // Normalize Current City
+    final userCity = user.currentCity?.toLowerCase() ?? 'select';
+    if (currentCityList.contains(userCity)) {
+      currentCity.value = userCity;
+    } else {
+      currentCity.value = 'other';
+      if (user.currentCity != null && user.currentCity!.isNotEmpty) {
+        if (!currentCityList.contains(user.currentCity)) {
+          currentCityList.add(user.currentCity!);
+        }
+        currentCity.value = user.currentCity!;
+      }
+    }
+
+    // Classes
+    if (user.class10 != null) {
+      class10.value = _mapClass12ClassToClassModel(user.class10!);
+    }
+    if (user.class12 != null) {
+      class12.value = _mapClass12ClassToClassModel(user.class12!);
+    }
+
+    if (user.studyId?.classes?.class1 != null) {
+      class1.value = _mapClass1ClassToClassModel(
+        user.studyId!.classes!.class1!,
+      );
+    }
+    if (user.studyId?.classes?.class10 != null) {
+      class10.value = _mapClass1ClassToClassModel(
+        user.studyId!.classes!.class10!,
+      );
+    }
+
+    // Address Details
+    if (user.addressIds != null) {
+      for (var address in user.addressIds!) {
+        final type = address.type?.toLowerCase() ?? '';
+        if (type.contains('current')) {
+          prefillAddressEntry(
+            currentAddress,
+            savedCountry: address.country,
+            savedState: address.state,
+            savedDistrict: address.district,
+            savedCity: address.city,
+            fullAddress: address.address,
+            pincode: address.pincode,
+          ).then((_) {});
+        } else if (type.contains('village') || type.contains('permanent')) {
+          prefillAddressEntry(
+            villageAddress,
+            savedCountry: address.country,
+            savedState: address.state,
+            savedDistrict: address.district,
+            savedCity: address.city,
+            fullAddress: address.address,
+            pincode: address.pincode,
+          ).then((_) {});
+        } else {
+          final newOther = AddressEntry().obs;
+          otherAddressList.add({
+            'selectedType': address.type?.obs ?? 'not Selected'.obs,
+            'address': newOther,
+          });
+          prefillAddressEntry(
+            newOther,
+            savedCountry: address.country,
+            savedState: address.state,
+            savedDistrict: address.district,
+            savedCity: address.city,
+            fullAddress: address.address,
+            pincode: address.pincode,
+          );
+        }
+      }
+    }
+
+    // Load countries for unused form addresses just in case they weren't prefilled
+    if (currentAddress.value.countries.isEmpty) {
+      loadCountriesFor(currentAddress);
+    }
+    if (villageAddress.value.countries.isEmpty) {
+      loadCountriesFor(villageAddress);
+    }
+
+    // Secondary Details
+    // Normalize Marital Status
+    final userMarital = user.maritalStatus;
+    if (userMarital != null && ['Married', 'Unmarried'].contains(userMarital)) {
+      maritalStatus.value = userMarital;
+    } else {
+      maritalStatus.value = 'Not Selected';
+    }
+
+    // Normalize Blood Group
+    final userBlood = user.bloodGroup;
+    final validBloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+    if (userBlood != null && validBloodGroups.contains(userBlood)) {
+      bloodGroup.value = userBlood;
+    } else {
+      bloodGroup.value = 'Not Selected';
+    }
+
+    selectedProfessions.assignAll(user.professions ?? []);
+    selectedEducations.assignAll(
+      user.educations?.map((e) => e.toString()).toList() ?? [],
+    );
+
+    // Skill & Hobbies
+    yourSkill.text = user.skill ?? '';
+    selectedTalents.assignAll(user.talents ?? []);
+    awards.assignAll(user.awards ?? []);
+  }
+
+  ClassModel _mapClass12ClassToClassModel(Class12Class data) {
+    final model = ClassModel(
+      isInGurukulValue: (data.isStudded ?? false)
+          ? ClassStatus.yes
+          : ClassStatus.no,
+    );
+
+    if (data.branch != null) {
+      model.branch.value = data.branch!;
+    }
+
+    model.passingYear.value = data.passingYear;
+    model.medium.value = data.medium;
+    model.hostel.value = (data.hostel ?? false) ? 'hostel' : 'non hostel';
+    return model;
+  }
+
+  ClassModel _mapClass1ClassToClassModel(Class1Class data) {
+    final model = ClassModel(
+      isInGurukulValue: (data.isStudied ?? false)
+          ? ClassStatus.yes
+          : ClassStatus.no,
+    );
+    if (data.branch != null) {
+      model.branch.value = data.branch!;
+    }
+    return model;
+  }
+
+  final apiService = ApiService.to;
 
   void getBranches() async {
     try {
@@ -181,7 +393,9 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
             .toList();
       }
     } catch (e) {
-      log(DateFormat.yMd().format(DateTime.now())); // Just a placeholder for logging
+      log(
+        DateFormat.yMd().format(DateTime.now()),
+      ); // Just a placeholder for logging
     }
   }
 
@@ -218,10 +432,7 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
 
   void addOtherAddress() {
     final entry = AddressEntry().obs;
-    otherAddressList.add({
-      'selectedType': 'select'.obs,
-      'address': entry,
-    });
+    otherAddressList.add({'selectedType': 'select'.obs, 'address': entry});
     loadCountriesFor(entry);
   }
 
@@ -231,8 +442,108 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
     }
   }
 
-  void submit() {
-    Get.back();
+  void submit() async {
+    try {
+      final payload = {
+        'userId': targetUserId,
+        'name': nameController.text,
+        'fatherName': fatherNameController.text,
+        'surname': surnameController.text,
+        'phoneNumber': phoneController.text,
+        'email': emailController.text,
+        'whatsappNumber': whatsappNumberController.text,
+        'gender': gender.value.toLowerCase(),
+        'hrNo': hrNoController.text,
+        'currentCity': currentCity.value,
+        'maritalStatus': maritalStatus.value,
+        'bloodGroup': bloodGroup.value,
+        'skill': yourSkill.text,
+        'professions': selectedProfessions,
+        'educations': selectedEducations,
+        'talents': selectedTalents,
+        'awards': awards,
+        'class10': _mapControllerToApiClass(class10.value, '10'),
+        'class12': _mapControllerToApiClass(class12.value, '12'),
+        'addresses': _collectAddresses(),
+      };
+
+      final res = await apiService.put(ApiConstants.updateUser, body: payload);
+      if (res.status == 200) {
+        Get.back();
+        Get.snackbar(
+          'Success',
+          'Profile updated successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          res.message ?? 'Update failed',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      log('Error updating profile: $e');
+      Get.snackbar(
+        'Error',
+        'Something went wrong',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Map<String, dynamic> _mapControllerToApiClass(
+    ClassModel c,
+    String className,
+  ) {
+    return {
+      'class': className,
+      'isStudded': c.isInGurukul.value == ClassStatus.yes,
+      'branch': c.branch.value,
+      'passingYear': c.passingYear.value,
+      'medium': c.medium.value,
+      'hostel': c.hostel.value == 'hostel',
+    };
+  }
+
+  List<Map<String, dynamic>> _collectAddresses() {
+    final List<Map<String, dynamic>> addressList = [];
+
+    // Current Address
+    if (currentAddress.value.selectedCountryName != null) {
+      addressList.add(_buildAddressMap(currentAddress.value, 'current'));
+    }
+
+    // Village Address
+    if (villageAddress.value.selectedCountryName != null) {
+      addressList.add(_buildAddressMap(villageAddress.value, 'village'));
+    }
+
+    // Other Addresses
+    for (var other in otherAddressList) {
+      final entry = (other['address'] as Rx<AddressEntry>).value;
+      final type = (other['selectedType'] as Rx<String>).value;
+      if (type != 'select' && entry.selectedCountryName != null) {
+        addressList.add(_buildAddressMap(entry, type));
+      }
+    }
+
+    return addressList;
+  }
+
+  Map<String, dynamic> _buildAddressMap(AddressEntry entry, String type) {
+    return {
+      'address': entry.fullAddress,
+      'type': type,
+      'city': entry.selectedCityName ?? '',
+      'district': entry.selectedDistrictName ?? '',
+      'state': entry.selectedStateName ?? '',
+      'country': entry.selectedCountryName ?? '',
+      'pincode': entry.pincode,
+    };
   }
 
   Future<String?> selectDate() async {

@@ -122,7 +122,9 @@ class UserModel {
         ? null
         : DateTime.parse(json["updatedAt"]),
     image: json["image"],
-    batchId: json["batchId"],
+    batchId: json["batchId"] is Map
+        ? json["batchId"]["_id"]
+        : json["batchId"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {

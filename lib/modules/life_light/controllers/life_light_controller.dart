@@ -8,7 +8,7 @@ import 'package:gurukul_bhutpurva/shared/global/global_ver.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class LifeLightController extends GetxController {
-  final apiSirvices = ApiService();
+  final apiService = ApiService.to;
   final StorageService storage = Get.find();
 
   final Rx<String?> lifeLightImage =
@@ -113,7 +113,7 @@ class LifeLightController extends GetxController {
 
   void submitLifeLight(String lifeLight) async {
     try {
-      final ResModel res = await apiSirvices.post(
+      final ResModel res = await apiService.post(
         ApiConstants.lifeLight,
         body: {'userId': storage.user.id, 'lifeLight': lifeLight},
       );

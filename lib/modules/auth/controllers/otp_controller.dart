@@ -79,10 +79,7 @@ class OtpController extends GetxController {
             data.token,
             data.user,
           );
-          await storageService.write(
-            'active_profile_index',
-            profileIndex,
-          );
+          await storageService.write('active_profile_index', profileIndex);
           log('Profile added to local list at index $profileIndex.');
 
           storageService.isLoggedIn = true;

@@ -14,8 +14,7 @@ class AuthService {
     try {
       await _googleSignIn.initialize(serverClientId: _serverClientId);
 
-      final GoogleSignInAccount? googleUser = await _googleSignIn
-          .authenticate();
+      final googleUser = await _googleSignIn.authenticate();
       return googleUser;
     } catch (error) {
       log("Google SignIn Error: $error");

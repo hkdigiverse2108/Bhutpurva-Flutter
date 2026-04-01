@@ -8,7 +8,7 @@ import 'package:gurukul_bhutpurva/modules/survey/controllers/survey_controller.d
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class SurveyDetailsController extends GetxController {
-  final ApiService _apiService = ApiService();
+  final apiService = ApiService.to;
   late SurveyModel survey;
 
   final RxMap<String, dynamic> answers = <String, dynamic>{}.obs;
@@ -87,7 +87,7 @@ class SurveyDetailsController extends GetxController {
         "answers": answerList,
       };
 
-      final ResModel res = await _apiService.post(
+      final ResModel res = await apiService.post(
         ApiConstants.submitSurvey,
         body: payload,
       );

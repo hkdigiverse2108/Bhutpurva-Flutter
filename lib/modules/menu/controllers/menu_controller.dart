@@ -16,7 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class MenusController extends GetxController {
   final storage = Get.find<StorageService>();
-  final apiSirvices = ApiService();
+  final apiService = ApiService.to;
 
   void navigateToTechnicalSupport() {
     Get.toNamed(AppRoutes.technicalSupport);
@@ -134,7 +134,7 @@ class MenusController extends GetxController {
   void submitFeedback(String feedback) async {
     try {
       log("ID: ${storage.user.name}");
-      final ResModel res = await apiSirvices.post(
+      final ResModel res = await apiService.post(
         ApiConstants.feedback,
         body: {'userId': storage.user.id, 'feedback': feedback},
       );
@@ -321,7 +321,7 @@ class MenusController extends GetxController {
     try {
       if (storage.token != null) {
         log(storage.token!);
-        await apiSirvices.post(
+        await apiService.post(
           ApiConstants.logout,
           body: {},
           headers: {'authorization': storage.token!},

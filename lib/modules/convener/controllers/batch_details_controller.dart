@@ -24,7 +24,7 @@ class BatchDetailsController extends GetxController {
   final GlobalKey verifiedHintKey = GlobalKey();
 
   final storageService = Get.find<StorageService>();
-  final apiService = ApiService();
+  final apiService = ApiService.to;
   final Rxn<BatchModel> batchData = Rxn<BatchModel>();
 
   @override
@@ -78,6 +78,8 @@ class BatchDetailsController extends GetxController {
           members.assignAll(batchData.value?.students ?? []);
           isVerified.value = batchData.value?.isActive ?? false;
           showMonitors.value = true;
+          // Fetch monitors sequentially inside success block
+          await fetchMonitors(batchId);
         }
       } catch (e) {
         log("Error fetching batch details: $e");
@@ -88,21 +90,37 @@ class BatchDetailsController extends GetxController {
       hasEditAccess.value = true;
     }
 
-    if (showMonitors.value && monitors.isEmpty) {
-      monitors.assignAll(_dummyMonitors());
-    }
-
     isLoading.value = false;
   }
 
-  List<MonitorModel> _dummyMonitors() {
-    return [
-      MonitorModel(
-        name: 'Rahul Patel',
-        mobile: '9312345678',
-        assignedMembers: ['Rahul Patel', 'Amit Shah', 'Neha Joshi'],
-      ),
-    ];
+  Future<void> fetchMonitors(String batchId) async {
+    try {
+      final response = await apiService.get(
+        ApiConstants.monitors(batchFilter: batchId),
+      );
+
+      if (response.status == 200) {
+        final Map<String, dynamic> responseData =
+            response.data as Map<String, dynamic>? ?? {};
+        final List<dynamic> data = responseData['monitors'] as List? ?? [];
+
+        final List<MonitorModel> fetchedMonitors = data
+            .map((e) => MonitorModel.fromJson(e))
+            .toList();
+
+        // Resolve member names
+        for (final monitor in fetchedMonitors) {
+          monitor.assignedMembers = monitor.devoteeIds.map((id) {
+            final student = members.firstWhereOrNull((m) => m.id == id);
+            return student?.fullName ?? "Unknown";
+          }).toList();
+        }
+
+        monitors.assignAll(fetchedMonitors);
+      }
+    } catch (e) {
+      log("Error fetching monitors: $e");
+    }
   }
 
   Future<void> showDeleteMonitorDialog(int index) async {

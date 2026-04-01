@@ -12,7 +12,7 @@ class GroupsController extends GetxController {
   var groupDetails = Rx<GroupModel?>(null);
 
   final isLoading = false.obs;
-  final apiServices = ApiService();
+  final apiService = ApiService.to;
 
   @override
   void onInit() {
@@ -27,7 +27,7 @@ class GroupsController extends GetxController {
 
       isLoading.value = true;
 
-      final ResModel res = await apiServices.get(
+      final ResModel res = await apiService.get(
         ApiConstants.groupDetails(groupDetails.value!.id),
       );
 

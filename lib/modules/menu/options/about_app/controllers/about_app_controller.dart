@@ -6,7 +6,7 @@ import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
 class AboutAppController extends GetxController {
   final isLoading = false.obs;
-  final apiService = ApiService();
+  final apiService = ApiService.to;
 
   final htmlContent = "".obs;
 

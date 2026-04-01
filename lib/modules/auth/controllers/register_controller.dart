@@ -16,7 +16,7 @@ import 'package:intl/intl.dart';
 
 class RegisterController extends GetxController with LocationDropdownMixin {
   static RegisterController get instance => Get.find();
-  final apiService = ApiService();
+  final apiService = ApiService.to;
   final storage = Get.find<StorageService>();
 
   final Map<String, String> talentTranslations = {
@@ -402,17 +402,17 @@ class RegisterController extends GetxController with LocationDropdownMixin {
   bool validateCurrentStep() {
     switch (currentIndex.value) {
       case 0:
-        return primaryDetailsFormKey.currentState!.validate();
+        return primaryDetailsFormKey.currentState?.validate() ?? true;
       case 1:
-        return majorDetailsFormKey.currentState!.validate();
+        return majorDetailsFormKey.currentState?.validate() ?? true;
       case 2:
-        return addressDetailsFormKey.currentState!.validate();
+        return addressDetailsFormKey.currentState?.validate() ?? true;
       case 3:
-        return secondaryDetailsFormKey.currentState!.validate();
+        return secondaryDetailsFormKey.currentState?.validate() ?? true;
       case 4:
-        return classDetailsFormKey.currentState!.validate();
+        return classDetailsFormKey.currentState?.validate() ?? true;
       case 5:
-        return skillAndHobbiesFormKey.currentState!.validate();
+        return skillAndHobbiesFormKey.currentState?.validate() ?? true;
       default:
         return true;
     }

@@ -1,4 +1,3 @@
-
 class BatchModel {
   final String id;
   final String name;
@@ -29,11 +28,17 @@ class BatchModel {
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
       groupId: GroupSummaryModel.fromJson(json['groupId'] ?? {}),
-      monitorIds: List<String>.from(json['monitorIds'] ?? []),
+      monitorIds: (json['monitorIds'] as List? ?? [])
+          .map((e) => e is Map ? (e['_id'] ?? '') as String : e.toString())
+          .toList(),
       isActive: json['isActive'] ?? false,
       isDeleted: json['isDeleted'] ?? false,
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
       students: (json['students'] as List? ?? [])
           .map((e) => BatchStudentModel.fromJson(e))
           .toList(),
@@ -68,8 +73,12 @@ class GroupSummaryModel {
       leaderIds: List<String>.from(json['leaderIds'] ?? []),
       isActive: json['isActive'] ?? false,
       isDeleted: json['isDeleted'] ?? false,
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 }

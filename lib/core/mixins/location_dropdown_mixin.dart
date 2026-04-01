@@ -5,12 +5,10 @@ import '../../core/services/api_service.dart';
 import '../../data/models/address/location_model.dart';
 
 mixin LocationDropdownMixin {
-  final ApiService apiService = ApiService();
-
   Future<void> loadCountriesFor(Rx<AddressEntry> rxAddress) async {
     rxAddress.value = rxAddress.value.copyWith(loadingCountries: true);
     try {
-      final ResModel res = await apiService.get(
+      final ResModel res = await ApiService.to.get(
         ApiConstants.location(typeFilter: 'country'),
       );
       if (res.status == 200) {
@@ -41,7 +39,7 @@ mixin LocationDropdownMixin {
     rxAddress.value = nextState;
 
     try {
-      final ResModel res = await apiService.get(
+      final ResModel res = await ApiService.to.get(
         ApiConstants.location(typeFilter: 'state', parentId: countryId),
       );
       if (res.status >= 200 && res.status < 300) {
@@ -72,7 +70,7 @@ mixin LocationDropdownMixin {
     rxAddress.value = nextState;
 
     try {
-      final ResModel res = await apiService.get(
+      final ResModel res = await ApiService.to.get(
         ApiConstants.location(typeFilter: 'district', parentId: stateId),
       );
       if (res.status >= 200 && res.status < 300) {
@@ -103,7 +101,7 @@ mixin LocationDropdownMixin {
     rxAddress.value = nextState;
 
     try {
-      final ResModel res = await apiService.get(
+      final ResModel res = await ApiService.to.get(
         ApiConstants.location(typeFilter: 'city', parentId: districtId),
       );
       if (res.status >= 200 && res.status < 300) {
