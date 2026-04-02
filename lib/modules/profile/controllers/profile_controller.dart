@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:gurukul_bhutpurva/data/models/res/res_model.dart';
+import 'package:gurukul_bhutpurva/data/models/user/user_model.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 import 'package:http/http.dart' as http;
 // ignore: depend_on_referenced_packages
@@ -24,13 +25,18 @@ class ProfileController extends GetxController {
   final apiService = ApiService.to;
 
   final uploadingImage = false.obs;
+  final isLoading = false.obs;
+  final currentUser = Rxn<UserModel>(); // Reactive user state
 
-  String get fullName =>
-      "${storage.user.name} ${storage.user.fatherName} ${storage.user.surname}"
-          .toUpperCase();
+  String get fullName {
+    final user = currentUser.value ?? storage.user;
+    return "${user.name ?? ''} ${user.fatherName ?? ''} ${user.surname ?? ''}"
+        .trim()
+        .toUpperCase();
+  }
 
   double get profileProgress {
-    final user = storage.user;
+    final user = currentUser.value ?? storage.user;
     int total = 0;
     int filled = 0;
 
@@ -85,8 +91,31 @@ class ProfileController extends GetxController {
 
   @override
   void onInit() {
+    currentUser.value = storage.user; // Initialize with local data
     profileImagePath.value = storage.user.image ?? '';
+    fetchUserProfile(); // Always fetch fresh data on initialization
     super.onInit();
+  }
+
+  Future<void> fetchUserProfile() async {
+    final userId = storage.user.id;
+    if (userId == null || userId.isEmpty) return;
+    try {
+      isLoading.value = true;
+      final res = await apiService.get(
+        ApiConstants.getUserById + userId,
+      );
+      if (res.status == 200 && res.data != null) {
+        final user = UserModel.fromJson(res.data);
+        await storage.saveUser(user);
+        currentUser.value = user; // Trigger reactivity
+        profileImagePath.value = user.image ?? '';
+      }
+    } catch (e) {
+      log('Error fetching user profile: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void openImagePicker() {
@@ -217,6 +246,7 @@ class ProfileController extends GetxController {
             var user = storage.user;
             user.image = filePath;
             await storage.saveUser(user);
+            currentUser.value = user; // Update reactive state
             log(user.image.toString());
             profileImagePath.value = user.image!;
             AppSnackbar.success('Profile picture updated successfully');

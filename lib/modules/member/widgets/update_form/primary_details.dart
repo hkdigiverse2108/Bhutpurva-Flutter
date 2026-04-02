@@ -82,7 +82,7 @@ class MemberPrimaryDetails extends GetView<MemberUpdateController> {
               () => (!controller.isWhatsappNumber.value)
                   ? CommonTextFormField(
                       label: 'WhatsApp Number (વાટસએપ નંબર)',
-                      controller: controller.phoneController,
+                      controller: controller.whatsappNumberController,
                       hintText: 'Enter WhatsApp Number',
                     )
                   : SizedBox.shrink(),
@@ -107,7 +107,7 @@ class MemberPrimaryDetails extends GetView<MemberUpdateController> {
               label: 'Email (ઈમેલ)',
               hintText: 'Enter Email',
               isRequired: true,
-              controller: controller.surnameController,
+              controller: controller.emailController,
             ),
           ],
         ),

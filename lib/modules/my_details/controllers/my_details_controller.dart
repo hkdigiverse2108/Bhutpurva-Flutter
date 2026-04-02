@@ -7,6 +7,7 @@ import 'package:gurukul_bhutpurva/core/services/api_service.dart';
 import 'package:gurukul_bhutpurva/core/services/storage_service.dart';
 import 'package:gurukul_bhutpurva/data/models/branch/branch_model.dart';
 import 'package:gurukul_bhutpurva/data/models/class/class_model.dart';
+import 'package:gurukul_bhutpurva/data/models/res/res_model.dart';
 import 'package:gurukul_bhutpurva/data/models/user/user_model.dart';
 import 'package:gurukul_bhutpurva/shared/widgets/snackbar/app_snackbar.dart';
 
@@ -60,9 +61,29 @@ class MyDetailsController extends GetxController {
       currentYear - 1980 + 1,
       (index) => (currentYear - index).toString(),
     );
-    loadUserData();
+    fetchUserProfile(); // Always fetch fresh data on initialization
     getBranches();
     super.onInit();
+  }
+
+  Future<void> fetchUserProfile() async {
+    final userId = storage.user.id;
+    if (userId == null || userId.isEmpty) return;
+    try {
+      isLoading.value = true;
+      final res = await apiService.get(ApiConstants.getUserById + userId);
+      if (res.status == 200 && res.data != null) {
+        final user = UserModel.fromJson(res.data);
+        await storage.saveUser(user);
+        loadUserData();
+      } else {
+        AppSnackbar.error(res.message ?? 'Failed to refresh profile data');
+      }
+    } catch (e) {
+      log('Error fetching user profile: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void getBranches() async {
@@ -82,7 +103,20 @@ class MyDetailsController extends GetxController {
     final user = storage.user;
 
     hrNoController.text = user.hrNo ?? "";
-    currentCity.value = user.currentCity ?? "select";
+
+    // Normalize Current City logic (Robust handling for non-list cities like 'Mumbai')
+    final userCity = user.currentCity?.toLowerCase() ?? 'select';
+    if (currentCityList.contains(userCity)) {
+      currentCity.value = userCity;
+    } else {
+      currentCity.value = 'other';
+      if (user.currentCity != null && user.currentCity!.isNotEmpty) {
+        if (!currentCityList.contains(user.currentCity)) {
+          currentCityList.add(user.currentCity!);
+        }
+        currentCity.value = user.currentCity!;
+      }
+    }
 
     // Map Class 10/12 Details
     _mapToClassModel(user.class10, tenTh.value);
@@ -90,17 +124,27 @@ class MyDetailsController extends GetxController {
 
     // Map StudyId -> Classes (Optional based on backend schema)
     if (user.studyId?.classes != null) {
-      final classes = user.studyId!.classes!;
-      _mapToClassModelFromStudy(classes.class1, class1.value);
-      _mapToClassModelFromStudy(classes.class10, class10.value);
+      final c = user.studyId!.classes!;
+      _mapToClassModelFromStudy(c.class1, class1.value);
+      _mapToClassModelFromStudy(c.class2, class2.value);
+      _mapToClassModelFromStudy(c.class3, class3.value);
+      _mapToClassModelFromStudy(c.class4, class4.value);
+      _mapToClassModelFromStudy(c.class5, class5.value);
+      _mapToClassModelFromStudy(c.class6, class6.value);
+      _mapToClassModelFromStudy(c.class7, class7.value);
+      _mapToClassModelFromStudy(c.class8, class8.value);
+      _mapToClassModelFromStudy(c.class9, class9.value);
+      _mapToClassModelFromStudy(c.class10, class10.value);
+      _mapToClassModelFromStudy(c.class11, class11.value);
+      _mapToClassModelFromStudy(c.class12, class12.value);
     }
   }
 
   void _mapToClassModel(Class12Class? data, ClassModel model) {
     if (data == null) return;
-    model.isInGurukul.value = data.isStudded == true
+    model.isInGurukul.value = data.isStudied == true
         ? ClassStatus.yes
-        : (data.isStudded == false ? ClassStatus.no : ClassStatus.notSelected);
+        : (data.isStudied == false ? ClassStatus.no : ClassStatus.notSelected);
     model.branch.value = data.branch ?? "";
     model.passingYear.value = data.passingYear ?? "";
     model.medium.value = data.medium ?? "";
@@ -143,28 +187,16 @@ class MyDetailsController extends GetxController {
         "currentCity": currentCity.value == "select" ? null : currentCity.value,
         "class10": _mapToPayload(tenTh.value, "10"),
         "class12": _mapToPayload(twelveTh.value, "12"),
-        "studyId": {
-          "classes": {
-            "class1": {
-              "isStudied": class1.value.isInGurukul.value == ClassStatus.yes,
-              "branch": class1.value.branch.value,
-            },
-            "class10": {
-              "isStudied": class10.value.isInGurukul.value == ClassStatus.yes,
-              "branch": class10.value.branch.value,
-            },
-            // Add other classes as needed based on backend requirements
-          },
-        },
+        "study": _buildStudyPayload(),
       };
 
-      final response = await apiService.put(
+      final ResModel response = await apiService.put(
         ApiConstants.updateUser,
         body: payload,
         headers: {'authorization': storage.token!},
       );
 
-      if (response.success) {
+      if (response.status == 200) {
         // Update local session data
         final updatedUser = UserModel.fromJson(response.data);
         await storage.saveUser(updatedUser);
@@ -185,10 +217,35 @@ class MyDetailsController extends GetxController {
     }
   }
 
+  Map<String, dynamic>? _buildStudyPayload() {
+    final Map<String, dynamic> classesMap = {};
+
+    void addClassIfStudied(String key, ClassModel model) {
+      if (model.isInGurukul.value == ClassStatus.yes) {
+        classesMap[key] = {"isStudied": true, "branch": model.branch.value};
+      }
+    }
+
+    addClassIfStudied("class1", class1.value);
+    addClassIfStudied("class2", class2.value);
+    addClassIfStudied("class3", class3.value);
+    addClassIfStudied("class4", class4.value);
+    addClassIfStudied("class5", class5.value);
+    addClassIfStudied("class6", class6.value);
+    addClassIfStudied("class7", class7.value);
+    addClassIfStudied("class8", class8.value);
+    addClassIfStudied("class9", class9.value);
+    addClassIfStudied("class10", class10.value);
+    addClassIfStudied("class11", class11.value);
+    addClassIfStudied("class12", class12.value);
+
+    return classesMap.isEmpty ? null : classesMap;
+  }
+
   Map<String, dynamic> _mapToPayload(ClassModel model, String classNo) {
     return {
       "class": classNo,
-      "isStudded": model.isInGurukul.value == ClassStatus.yes,
+      "isStudied": model.isInGurukul.value == ClassStatus.yes,
       "branch": model.branch.value,
       "passingYear": model.passingYear.value,
       "medium": model.medium.value,
@@ -198,5 +255,11 @@ class MyDetailsController extends GetxController {
 
   void changeTab(int index) {
     tab.value = index;
+  }
+
+  @override
+  void onClose() {
+    hrNoController.dispose();
+    super.onClose();
   }
 }

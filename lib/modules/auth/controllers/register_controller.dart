@@ -419,83 +419,101 @@ class RegisterController extends GetxController with LocationDropdownMixin {
   }
 
   void submit() async {
-    if (!validateCurrentStep()) return;
+    if (!validateCurrentStep()) {
+      return;
+    }
     try {
       isLoading.value = true;
 
-      final study = {
-        if (class1.value.isInGurukul.value != ClassStatus.notSelected)
+      // 1. Build Study Map (Pattern #2)
+      final studyPayload = {
+        if (class1.value.isInGurukul.value == ClassStatus.yes)
           "class1": {"isStudied": true, "branch": class1.value.branch.value},
-        if (class2.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class2.value.isInGurukul.value == ClassStatus.yes)
           "class2": {"isStudied": true, "branch": class2.value.branch.value},
-        if (class3.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class3.value.isInGurukul.value == ClassStatus.yes)
           "class3": {"isStudied": true, "branch": class3.value.branch.value},
-        if (class4.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class4.value.isInGurukul.value == ClassStatus.yes)
           "class4": {"isStudied": true, "branch": class4.value.branch.value},
-        if (class5.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class5.value.isInGurukul.value == ClassStatus.yes)
           "class5": {"isStudied": true, "branch": class5.value.branch.value},
-        if (class6.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class6.value.isInGurukul.value == ClassStatus.yes)
           "class6": {"isStudied": true, "branch": class6.value.branch.value},
-        if (class7.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class7.value.isInGurukul.value == ClassStatus.yes)
           "class7": {"isStudied": true, "branch": class7.value.branch.value},
-        if (class8.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class8.value.isInGurukul.value == ClassStatus.yes)
           "class8": {"isStudied": true, "branch": class8.value.branch.value},
-        if (class9.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class9.value.isInGurukul.value == ClassStatus.yes)
           "class9": {"isStudied": true, "branch": class9.value.branch.value},
-        if (class10.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class10.value.isInGurukul.value == ClassStatus.yes)
           "class10": {"isStudied": true, "branch": class10.value.branch.value},
-        if (class11.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class11.value.isInGurukul.value == ClassStatus.yes)
           "class11": {"isStudied": true, "branch": class11.value.branch.value},
-        if (class12.value.isInGurukul.value != ClassStatus.notSelected)
+        if (class12.value.isInGurukul.value == ClassStatus.yes)
           "class12": {"isStudied": true, "branch": class12.value.branch.value},
       };
 
+      // 2. Format Birth Date (Pattern #6)
+      String? birthDateIso;
+      if (birthDateController.text.isNotEmpty) {
+        try {
+          birthDateIso = DateFormat(
+            'yyyy - MM - dd',
+          ).parse(birthDateController.text).toIso8601String();
+        } catch (e) {
+          log('Error parsing birthDate: $e');
+        }
+      }
+
       final tenth = {
         "class": "10",
-        "isStudded": tenTh.value.isInGurukul.value,
+        "isStudied":
+            tenTh.value.isInGurukul.value == ClassStatus.yes, // Pattern #3
         "branch": tenTh.value.branch.value,
         "passingYear": tenTh.value.passingYear.value,
         "medium": tenTh.value.medium.value,
-        "hostel": tenTh.value.hostel.value,
+        "hostel": tenTh.value.hostel.value == 'hostel',
       };
 
       final twelfth = {
         "class": "12",
-        "isStudded": twelveTh.value.isInGurukul.value,
+        "isStudied":
+            twelveTh.value.isInGurukul.value == ClassStatus.yes, // Pattern #3
         "branch": twelveTh.value.branch.value,
         "passingYear": twelveTh.value.passingYear.value,
         "medium": twelveTh.value.medium.value,
-        "hostel": twelveTh.value.hostel.value,
+        "hostel": twelveTh.value.hostel.value == 'hostel',
+      };
+
+      final Map<String, dynamic> body = {
+        "name": nameController.text,
+        "fatherName": fatherNameController.text,
+        "surname": surnameController.text,
+        "email": emailController.text,
+        "role": "user",
+        "birthDate": birthDateIso,
+        "phoneNumber": phoneController.text,
+        "whatsappNumber": whatsappNumberController.text,
+        "gender": gender.value.toLowerCase(),
+        "hrNo": hrNoController.text,
+        "currentCity": currentCity.value,
+        "addresses": _buildAddressesPayload(),
+        "professions": selectedProfessions.toList(), // Pattern #4
+        "education": selectedEducations.toList(), // Pattern #4
+        "maritalStatus": maritalStatus.value,
+        "bloodGroup": bloodGroup.value,
+        "study": studyPayload.isEmpty ? null : studyPayload, // Pattern #2
+        "skill": yourSkill.text, // Pattern #4
+        "hobbies": yourHobbies.text, // Pattern #4
+        "talents": selectedTalents.toList(),
+        "awards": awards.toList(),
+        "class10": tenth,
+        "class12": twelfth,
       };
 
       final ResModel response = await apiService.post(
         ApiConstants.register,
-        body: {
-          "name": nameController.text,
-          "fatherName": fatherNameController.text,
-          "surname": surnameController.text,
-          "email": emailController.text,
-          "role": "user",
-          "birthDate": birthDateController.text,
-          "phoneNumber": phoneController.text,
-          "whatsappNumber": whatsappNumberController.text,
-          "gender": gender.value,
-          "hrNo": hrNoController.text,
-          "currentCity": currentCity.value,
-          "addresses": _buildAddressesPayload(),
-          "occupation": "",
-          "professions": selectedProfessions,
-          "education": selectedEducations,
-          "maritalStatus": maritalStatus.value,
-          "bloodGroup": bloodGroup.value,
-          "study": study,
-          "skill": yourSkill.value,
-          "hobbies": yourHobbies.value,
-          "talents": selectedTalents,
-          "awards": awards,
-          "class10": tenth,
-          "class12": twelfth,
-        },
+        body: body,
       );
 
       if (response.status == 200) {
@@ -512,9 +530,11 @@ class RegisterController extends GetxController with LocationDropdownMixin {
     final list = <Map<String, dynamic>>[];
 
     Map<String, dynamic>? buildMap(AddressEntry entry, String type) {
-      if (entry.selectedCountryName == null) return null;
+      if (entry.selectedCountryName == null) {
+        return null;
+      }
       return {
-        "addressType": type,
+        "type": type, // Pattern #1: Use 'type' not 'addressType'
         "address": entry.fullAddress,
         "city": entry.selectedCityName ?? "",
         "district": entry.selectedDistrictName ?? "",
@@ -525,14 +545,20 @@ class RegisterController extends GetxController with LocationDropdownMixin {
     }
 
     final current = buildMap(currentAddress.value, "current");
-    if (current != null) list.add(current);
+    if (current != null) {
+      list.add(current);
+    }
 
     final village = buildMap(villageAddress.value, "village");
-    if (village != null) list.add(village);
+    if (village != null) {
+      list.add(village);
+    }
 
     for (var i = 0; i < otherAddressList.length; i++) {
       final other = buildMap(otherAddressList[i].value, "other");
-      if (other != null) list.add(other);
+      if (other != null) {
+        list.add(other);
+      }
     }
 
     return list;

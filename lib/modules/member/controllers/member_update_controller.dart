@@ -34,6 +34,7 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   final isVerified = false.obs;
   final isLoading = false.obs;
   String? targetUserId;
+  UserModel? _currentUser;
 
   late final List<String> passingYears;
   late final List<String> hostels = [
@@ -96,6 +97,8 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   final otherEducation = TextEditingController();
   final maritalStatus = 'Not Selected'.obs;
   final bloodGroup = 'Not Selected'.obs;
+  final maritalStatusList = ['Single', 'Married', 'Divorced', 'Widowed'].obs;
+  final bloodGroupList = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].obs;
 
   // Skill & Hobbies
   final yourSkill = TextEditingController();
@@ -161,7 +164,7 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
 
     if (memberData is UserModel) {
       targetUserId = memberData.id;
-      _populateFields(memberData);
+      _fetchMemberDetails(memberData.id!);
     } else if (memberData is String && memberData.isNotEmpty) {
       targetUserId = memberData;
       _fetchMemberDetails(memberData);
@@ -193,7 +196,9 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
       isLoading.value = true;
       final res = await apiService.get(ApiConstants.getUserById + id);
       if (res.status == 200 && res.data != null) {
-        _populateFields(UserModel.fromJson(res.data));
+        final user = UserModel.fromJson(res.data);
+        _currentUser = user; // Store the user for address ID matching
+        _populateFields(user);
       } else {
         Get.snackbar(
           'Error',
@@ -216,11 +221,22 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   }
 
   void _populateFields(UserModel user) async {
-    // Primary Details
+    _currentUser = user; // Ensure it's set if called directly
+    // 1. Primary Details
     displayImage.value = user.image ?? '';
     nameController.text = user.name ?? '';
     fatherNameController.text = user.fatherName ?? '';
     surnameController.text = user.surname ?? '';
+
+    // Birth Date Display Formatting (Pattern #5 & #6)
+    if (user.birthDate != null) {
+      birthDateController.text = DateFormat(
+        'yyyy - MM - dd',
+      ).format(user.birthDate!);
+    } else {
+      birthDateController.text = '';
+    }
+
     phoneController.text = user.phoneNumber ?? '';
     emailController.text = user.email ?? '';
     whatsappNumberController.text = user.whatsappNumber ?? '';
@@ -237,7 +253,7 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
 
     isVerified.value = user.isVerified ?? false;
 
-    // Major Details
+    // 2. Major Details
     hrNoController.text = user.hrNo ?? '';
 
     // Normalize Current City
@@ -254,26 +270,62 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
       }
     }
 
-    // Classes
+    // Classes 1-12 (Pattern #5: Study map base)
+    if (user.studyId?.classes != null) {
+      final c = user.studyId!.classes!;
+      if (c.class1 != null) {
+        class1.value = _mapClass1ClassToClassModel(c.class1!);
+      }
+      if (c.class2 != null) {
+        class2.value = _mapClass1ClassToClassModel(c.class2!);
+      }
+      if (c.class3 != null) {
+        class3.value = _mapClass1ClassToClassModel(c.class3!);
+      }
+      if (c.class4 != null) {
+        class4.value = _mapClass1ClassToClassModel(c.class4!);
+      }
+      if (c.class5 != null) {
+        class5.value = _mapClass1ClassToClassModel(c.class5!);
+      }
+      if (c.class6 != null) {
+        class6.value = _mapClass1ClassToClassModel(c.class6!);
+      }
+      if (c.class7 != null) {
+        class7.value = _mapClass1ClassToClassModel(c.class7!);
+      }
+      if (c.class8 != null) {
+        class8.value = _mapClass1ClassToClassModel(c.class8!);
+      }
+      if (c.class9 != null) {
+        class9.value = _mapClass1ClassToClassModel(c.class9!);
+      }
+      if (c.class10 != null) {
+        class10.value = _mapClass1ClassToClassModel(c.class10!);
+      }
+      if (c.class11 != null) {
+        class11.value = _mapClass1ClassToClassModel(c.class11!);
+      }
+      if (c.class12 != null) {
+        class12.value = _mapClass1ClassToClassModel(c.class12!);
+      }
+    }
+
+    // Classes 10 & 12 (Pattern #5: Detailed override)
     if (user.class10 != null) {
-      class10.value = _mapClass12ClassToClassModel(user.class10!);
+      final mapped = _mapClass12ClassToClassModel(user.class10!);
+      class10.value = mapped;
+      tenTh.value = _mapClass12ClassToClassModel(user.class10!);
     }
     if (user.class12 != null) {
-      class12.value = _mapClass12ClassToClassModel(user.class12!);
+      final mapped = _mapClass12ClassToClassModel(user.class12!);
+      class12.value = mapped;
+      twelveTh.value = _mapClass12ClassToClassModel(user.class12!);
     }
 
-    if (user.studyId?.classes?.class1 != null) {
-      class1.value = _mapClass1ClassToClassModel(
-        user.studyId!.classes!.class1!,
-      );
-    }
-    if (user.studyId?.classes?.class10 != null) {
-      class10.value = _mapClass1ClassToClassModel(
-        user.studyId!.classes!.class10!,
-      );
-    }
+    // 3. Address Details (Pattern #5: clear lists first)
+    otherAddressList.clear();
 
-    // Address Details
     if (user.addressIds != null) {
       for (var address in user.addressIds!) {
         final type = address.type?.toLowerCase() ?? '';
@@ -324,7 +376,7 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
       loadCountriesFor(villageAddress);
     }
 
-    // Secondary Details
+    // 4. Secondary Details
     // Normalize Marital Status
     final userMarital = user.maritalStatus;
     if (userMarital != null && ['Married', 'Unmarried'].contains(userMarital)) {
@@ -343,19 +395,25 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
     }
 
     selectedProfessions.assignAll(user.professions ?? []);
-    selectedEducations.assignAll(
-      user.educations?.map((e) => e.toString()).toList() ?? [],
-    );
 
-    // Skill & Hobbies
+    // Populate selectedEducations from user.educations (Pattern #5)
+    if (user.educations != null) {
+      selectedEducations.assignAll(
+        user.educations!.map((e) => e.toString()).toList(),
+      );
+    }
+
+    // 5. Skill & Hobbies
     yourSkill.text = user.skill ?? '';
+    yourHobbies.text =
+        user.hobbies ?? ''; // Pattern #5: Added hobbies population
     selectedTalents.assignAll(user.talents ?? []);
     awards.assignAll(user.awards ?? []);
   }
 
   ClassModel _mapClass12ClassToClassModel(Class12Class data) {
     final model = ClassModel(
-      isInGurukulValue: (data.isStudded ?? false)
+      isInGurukulValue: (data.isStudied ?? false)
           ? ClassStatus.yes
           : ClassStatus.no,
     );
@@ -444,11 +502,54 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
 
   void submit() async {
     try {
+      isLoading.value = true;
+
+      // 1. Build Study Map (Pattern #2)
+      final studyPayload = {
+        if (class1.value.isInGurukul.value == ClassStatus.yes)
+          "class1": {"isStudied": true, "branch": class1.value.branch.value},
+        if (class2.value.isInGurukul.value == ClassStatus.yes)
+          "class2": {"isStudied": true, "branch": class2.value.branch.value},
+        if (class3.value.isInGurukul.value == ClassStatus.yes)
+          "class3": {"isStudied": true, "branch": class3.value.branch.value},
+        if (class4.value.isInGurukul.value == ClassStatus.yes)
+          "class4": {"isStudied": true, "branch": class4.value.branch.value},
+        if (class5.value.isInGurukul.value == ClassStatus.yes)
+          "class5": {"isStudied": true, "branch": class5.value.branch.value},
+        if (class6.value.isInGurukul.value == ClassStatus.yes)
+          "class6": {"isStudied": true, "branch": class6.value.branch.value},
+        if (class7.value.isInGurukul.value == ClassStatus.yes)
+          "class7": {"isStudied": true, "branch": class7.value.branch.value},
+        if (class8.value.isInGurukul.value == ClassStatus.yes)
+          "class8": {"isStudied": true, "branch": class8.value.branch.value},
+        if (class9.value.isInGurukul.value == ClassStatus.yes)
+          "class9": {"isStudied": true, "branch": class9.value.branch.value},
+        if (class10.value.isInGurukul.value == ClassStatus.yes)
+          "class10": {"isStudied": true, "branch": class10.value.branch.value},
+        if (class11.value.isInGurukul.value == ClassStatus.yes)
+          "class11": {"isStudied": true, "branch": class11.value.branch.value},
+        if (class12.value.isInGurukul.value == ClassStatus.yes)
+          "class12": {"isStudied": true, "branch": class12.value.branch.value},
+      };
+
+      // 2. Format Birth Date (Pattern #6)
+      String? birthDateIso;
+      if (birthDateController.text.isNotEmpty) {
+        try {
+          birthDateIso = DateFormat(
+            'yyyy - MM - dd',
+          ).parse(birthDateController.text).toIso8601String();
+        } catch (e) {
+          log('Error parsing birthDate: $e');
+        }
+      }
+
       final payload = {
         'userId': targetUserId,
         'name': nameController.text,
         'fatherName': fatherNameController.text,
         'surname': surnameController.text,
+        'birthDate': birthDateIso, // Pattern #6
         'phoneNumber': phoneController.text,
         'email': emailController.text,
         'whatsappNumber': whatsappNumberController.text,
@@ -458,10 +559,12 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
         'maritalStatus': maritalStatus.value,
         'bloodGroup': bloodGroup.value,
         'skill': yourSkill.text,
-        'professions': selectedProfessions,
-        'educations': selectedEducations,
-        'talents': selectedTalents,
-        'awards': awards,
+        'hobbies': yourHobbies.text, // Pattern #4
+        'professions': selectedProfessions.toList(), // Pattern #4
+        'education': selectedEducations.toList(), // Pattern #4
+        'talents': selectedTalents.toList(),
+        'awards': awards.toList(),
+        "study": studyPayload.isEmpty ? null : studyPayload, // Pattern #2
         'class10': _mapControllerToApiClass(class10.value, '10'),
         'class12': _mapControllerToApiClass(class12.value, '12'),
         'addresses': _collectAddresses(),
@@ -492,6 +595,8 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -501,7 +606,7 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   ) {
     return {
       'class': className,
-      'isStudded': c.isInGurukul.value == ClassStatus.yes,
+      'isStudied': c.isInGurukul.value == ClassStatus.yes, // Pattern #3
       'branch': c.branch.value,
       'passingYear': c.passingYear.value,
       'medium': c.medium.value,
@@ -512,30 +617,78 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
   List<Map<String, dynamic>> _collectAddresses() {
     final List<Map<String, dynamic>> addressList = [];
 
+    // Pattern #1: Match IDs from user data
+    // Important: We need the original user data to get the address IDs.
+    // However, MemberUpdateController doesn't keep the full user model.
+    // It only gets it in _populateFields. I should probably store it.
+
+    // For now, I will use a placeholder or assume that if we are updating,
+    // we should have the user model.
+
+    // Wait, targetUserId is present. I should have kept the user model.
+    // Let me check if I can get user from somewhere.
+    // Ah, I see how UpdateProfileController does it: it has 'storage.user'.
+    // Here we need to store the user in _populateFields.
+
+    // Let me add 'UserModel? _currentUser;' to the controller.
+
     // Current Address
     if (currentAddress.value.selectedCountryName != null) {
-      addressList.add(_buildAddressMap(currentAddress.value, 'current'));
+      final id = _currentUser?.addressIds
+          ?.firstWhereOrNull((a) => a.type?.toLowerCase() == 'current')
+          ?.id;
+      addressList.add(_buildAddressMap(currentAddress.value, 'current', id));
     }
 
     // Village Address
     if (villageAddress.value.selectedCountryName != null) {
-      addressList.add(_buildAddressMap(villageAddress.value, 'village'));
+      final id = _currentUser?.addressIds
+          ?.firstWhereOrNull(
+            (a) =>
+                a.type?.toLowerCase() == 'village' ||
+                a.type?.toLowerCase() == 'permanent',
+          )
+          ?.id;
+      addressList.add(_buildAddressMap(villageAddress.value, 'village', id));
     }
 
     // Other Addresses
-    for (var other in otherAddressList) {
+    for (var i = 0; i < otherAddressList.length; i++) {
+      final other = otherAddressList[i];
       final entry = (other['address'] as Rx<AddressEntry>).value;
       final type = (other['selectedType'] as Rx<String>).value;
+
       if (type != 'select' && entry.selectedCountryName != null) {
-        addressList.add(_buildAddressMap(entry, type));
+        // Match by index for other addresses (Pattern #1)
+        final otherAddresses = _currentUser?.addressIds
+            ?.where(
+              (a) => !([
+                'current',
+                'village',
+                'permanent',
+              ].contains(a.type?.toLowerCase() ?? '')),
+            )
+            .toList();
+
+        String? id;
+        if (otherAddresses != null && i < otherAddresses.length) {
+          id = otherAddresses[i].id;
+        }
+
+        addressList.add(_buildAddressMap(entry, type, id));
       }
     }
 
     return addressList;
   }
 
-  Map<String, dynamic> _buildAddressMap(AddressEntry entry, String type) {
+  Map<String, dynamic> _buildAddressMap(
+    AddressEntry entry,
+    String type,
+    String? id,
+  ) {
     return {
+      if (id != null) 'id': id, // Pattern #1: Include ID
       'address': entry.fullAddress,
       'type': type,
       'city': entry.selectedCityName ?? '',
@@ -619,6 +772,20 @@ class MemberUpdateController extends GetxController with LocationDropdownMixin {
 
   @override
   void onClose() {
+    nameController.dispose();
+    fatherNameController.dispose();
+    surnameController.dispose();
+    birthDateController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    whatsappNumberController.dispose();
+    hrNoController.dispose();
+    otherProfession.dispose();
+    otherEducation.dispose();
+    yourSkill.dispose();
+    yourHobbies.dispose();
+    yourAwards.dispose();
+    instrumentController.dispose();
     pageController.dispose();
     tabScrollController.dispose();
     super.onClose();

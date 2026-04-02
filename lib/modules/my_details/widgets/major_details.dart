@@ -98,12 +98,7 @@ class MajorDetails extends GetView<MyDetailsController> {
                             fieldType: FieldType.dropdown,
                             dropdownItems: controller.passingYears,
                             dropdownValue:
-                                controller
-                                    .tenTh
-                                    .value
-                                    .passingYear
-                                    .value!
-                                    .isEmpty
+                                (controller.tenTh.value.passingYear.value?.isEmpty ?? true)
                                 ? null
                                 : controller.tenTh.value.passingYear.value,
                             onDropdownChanged: (value) {
@@ -152,7 +147,7 @@ class MajorDetails extends GetView<MyDetailsController> {
                             hintText: 'select',
                             dropdownItems: controller.hostels,
                             dropdownValue:
-                                controller.tenTh.value.hostel.value!.isEmpty
+                                (controller.tenTh.value.hostel.value?.isEmpty ?? true)
                                 ? null
                                 : controller.tenTh.value.hostel.value,
                             onDropdownChanged: (value) {
@@ -231,12 +226,7 @@ class MajorDetails extends GetView<MyDetailsController> {
                             fieldType: FieldType.dropdown,
                             dropdownItems: controller.passingYears,
                             dropdownValue:
-                                controller
-                                    .twelveTh
-                                    .value
-                                    .passingYear
-                                    .value!
-                                    .isEmpty
+                                (controller.twelveTh.value.passingYear.value?.isEmpty ?? true)
                                 ? null
                                 : controller.twelveTh.value.passingYear.value,
                             onDropdownChanged: (value) {
@@ -289,7 +279,7 @@ class MajorDetails extends GetView<MyDetailsController> {
                             hintText: 'select',
                             dropdownItems: controller.hostels,
                             dropdownValue:
-                                controller.twelveTh.value.hostel.value!.isEmpty
+                                (controller.twelveTh.value.hostel.value?.isEmpty ?? true)
                                 ? null
                                 : controller.twelveTh.value.hostel.value,
                             onDropdownChanged: (value) {

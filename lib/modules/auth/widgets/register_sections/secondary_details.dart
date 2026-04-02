@@ -287,22 +287,26 @@ class SecondaryDetails extends GetView<RegisterController> {
               child: Text('શું તમે પરિણીત છો?'),
             ),
             const Gap(6),
-            CommonTextFormField(
-              fieldType: FieldType.dropdown,
-              isRequired: true,
-              dropdownItems: controller.maritalStatusList,
-              dropdownValue: controller.maritalStatus.value == 'Not Selected'
-                  ? null
-                  : controller.maritalStatus.value,
-              onDropdownChanged: (value) {
-                controller.maritalStatus.value = value!;
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty || value == 'Not Selected') {
-                  return 'Please select your marital status';
-                }
-                return null;
-              },
+            Obx(
+              () => CommonTextFormField(
+                fieldType: FieldType.dropdown,
+                isRequired: true,
+                dropdownItems: controller.maritalStatusList,
+                dropdownValue: controller.maritalStatus.value == 'Not Selected'
+                    ? null
+                    : controller.maritalStatus.value,
+                onDropdownChanged: (value) {
+                  controller.maritalStatus.value = value!;
+                },
+                validator: (value) {
+                  if (value == null ||
+                      value.isEmpty ||
+                      value == 'Not Selected') {
+                    return 'Please select your marital status';
+                  }
+                  return null;
+                },
+              ),
             ),
             const Gap(10),
             Divider(thickness: 2),
@@ -331,22 +335,24 @@ class SecondaryDetails extends GetView<RegisterController> {
               child: Text('બ્લડ ગ્રુપ'),
             ),
             const Gap(6),
-            CommonTextFormField(
-              fieldType: FieldType.dropdown,
-              isRequired: true,
-              dropdownItems: controller.bloodGroupList,
-              dropdownValue: controller.bloodGroup.value == 'Select'
-                  ? null
-                  : controller.bloodGroup.value,
-              onDropdownChanged: (value) {
-                controller.bloodGroup.value = value!;
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty || value == 'Select') {
-                  return 'Please select your blood group';
-                }
-                return null;
-              },
+            Obx(
+              () => CommonTextFormField(
+                fieldType: FieldType.dropdown,
+                isRequired: true,
+                dropdownItems: controller.bloodGroupList,
+                dropdownValue: controller.bloodGroup.value == 'Select'
+                    ? null
+                    : controller.bloodGroup.value,
+                onDropdownChanged: (value) {
+                  controller.bloodGroup.value = value!;
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty || value == 'Select') {
+                    return 'Please select your blood group';
+                  }
+                  return null;
+                },
+              ),
             ),
           ],
         ),

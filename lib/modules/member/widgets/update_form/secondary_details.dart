@@ -287,7 +287,18 @@ class MemberSecondaryDetails extends GetView<MemberUpdateController> {
               child: Text('શું તમે પરિણીત છો?'),
             ),
             const Gap(6),
-            CommonTextFormField(fieldType: FieldType.dropdown),
+            Obx(
+              () => CommonTextFormField(
+                fieldType: FieldType.dropdown,
+                dropdownItems: controller.maritalStatusList,
+                dropdownValue: controller.maritalStatus.value == 'Not Selected'
+                    ? null
+                    : controller.maritalStatus.value,
+                onDropdownChanged: (value) {
+                  controller.maritalStatus.value = value!;
+                },
+              ),
+            ),
             const Gap(10),
             Divider(thickness: 2),
             const Gap(10),
@@ -315,7 +326,18 @@ class MemberSecondaryDetails extends GetView<MemberUpdateController> {
               child: Text('બ્લડ ગ્રુપ'),
             ),
             const Gap(6),
-            CommonTextFormField(fieldType: FieldType.dropdown),
+            Obx(
+              () => CommonTextFormField(
+                fieldType: FieldType.dropdown,
+                dropdownItems: controller.bloodGroupList,
+                dropdownValue: controller.bloodGroup.value == 'Not Selected'
+                    ? null
+                    : controller.bloodGroup.value,
+                onDropdownChanged: (value) {
+                  controller.bloodGroup.value = value!;
+                },
+              ),
+            ),
           ],
         ),
       ),

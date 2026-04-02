@@ -8,6 +8,7 @@ class UserModel {
   String? name;
   String? fatherName;
   String? surname;
+  DateTime? birthDate;
   String? phoneNumber;
   String? whatsappNumber;
   String? gender;
@@ -25,6 +26,7 @@ class UserModel {
   StudyId? studyId;
   String? skill;
   List<String>? talents;
+  String? hobbies;
   List<String>? awards;
   bool? isDeleted;
   bool? isVerified;
@@ -39,6 +41,7 @@ class UserModel {
     this.name,
     this.fatherName,
     this.surname,
+    this.birthDate,
     this.phoneNumber,
     this.whatsappNumber,
     this.gender,
@@ -56,6 +59,7 @@ class UserModel {
     this.studyId,
     this.skill,
     this.talents,
+    this.hobbies,
     this.awards,
     this.isDeleted,
     this.isVerified,
@@ -76,6 +80,9 @@ class UserModel {
     name: json["name"],
     fatherName: json["fatherName"],
     surname: json["surname"],
+    birthDate: json["birthDate"] == null
+        ? null
+        : DateTime.parse(json["birthDate"]),
     phoneNumber: json["phoneNumber"],
     whatsappNumber: json["whatsappNumber"],
     gender: json["gender"],
@@ -97,6 +104,7 @@ class UserModel {
     educations: json["educations"] == null
         ? []
         : List<dynamic>.from(json["educations"]!.map((x) => x)),
+    hobbies: json["hobbies"],
     maritalStatus: json["maritalStatus"],
     bloodGroup: json["bloodGroup"],
     class10: json["class10"] == null
@@ -133,6 +141,7 @@ class UserModel {
     "name": name,
     "fatherName": fatherName,
     "surname": surname,
+    "birthDate": birthDate?.toIso8601String(),
     "phoneNumber": phoneNumber,
     "whatsappNumber": whatsappNumber,
     "gender": gender,
@@ -149,6 +158,7 @@ class UserModel {
     "educations": educations == null
         ? []
         : List<dynamic>.from(educations!.map((x) => x)),
+    "hobbies": hobbies,
     "maritalStatus": maritalStatus,
     "bloodGroup": bloodGroup,
     "class10": class10?.toJson(),
@@ -230,7 +240,7 @@ class AddressId {
 
 class Class12Class {
   String? class1Class;
-  bool? isStudded;
+  bool? isStudied;
   String? branch;
   String? passingYear;
   String? medium;
@@ -239,7 +249,7 @@ class Class12Class {
 
   Class12Class({
     this.class1Class,
-    this.isStudded,
+    this.isStudied,
     this.branch,
     this.passingYear,
     this.medium,
@@ -249,7 +259,7 @@ class Class12Class {
 
   factory Class12Class.fromJson(Map<String, dynamic> json) => Class12Class(
     class1Class: json["class"],
-    isStudded: json["isStudded"],
+    isStudied: json["isStudied"] ?? json["isStudded"],
     branch: json["branch"],
     passingYear: json["passingYear"],
     medium: json["medium"],
@@ -259,7 +269,7 @@ class Class12Class {
 
   Map<String, dynamic> toJson() => {
     "class": class1Class,
-    "isStudded": isStudded,
+    "isStudied": isStudied,
     "branch": branch,
     "passingYear": passingYear,
     "medium": medium,
@@ -297,22 +307,85 @@ class StudyId {
 
 class Classes {
   Class1Class? class1;
+  Class1Class? class2;
+  Class1Class? class3;
+  Class1Class? class4;
+  Class1Class? class5;
+  Class1Class? class6;
+  Class1Class? class7;
+  Class1Class? class8;
+  Class1Class? class9;
   Class1Class? class10;
+  Class1Class? class11;
+  Class1Class? class12;
 
-  Classes({this.class1, this.class10});
+  Classes({
+    this.class1,
+    this.class2,
+    this.class3,
+    this.class4,
+    this.class5,
+    this.class6,
+    this.class7,
+    this.class8,
+    this.class9,
+    this.class10,
+    this.class11,
+    this.class12,
+  });
 
   factory Classes.fromJson(Map<String, dynamic> json) => Classes(
     class1: json["class1"] == null
         ? null
         : Class1Class.fromJson(json["class1"]),
+    class2: json["class2"] == null
+        ? null
+        : Class1Class.fromJson(json["class2"]),
+    class3: json["class3"] == null
+        ? null
+        : Class1Class.fromJson(json["class3"]),
+    class4: json["class4"] == null
+        ? null
+        : Class1Class.fromJson(json["class4"]),
+    class5: json["class5"] == null
+        ? null
+        : Class1Class.fromJson(json["class5"]),
+    class6: json["class6"] == null
+        ? null
+        : Class1Class.fromJson(json["class6"]),
+    class7: json["class7"] == null
+        ? null
+        : Class1Class.fromJson(json["class7"]),
+    class8: json["class8"] == null
+        ? null
+        : Class1Class.fromJson(json["class8"]),
+    class9: json["class9"] == null
+        ? null
+        : Class1Class.fromJson(json["class9"]),
     class10: json["class10"] == null
         ? null
         : Class1Class.fromJson(json["class10"]),
+    class11: json["class11"] == null
+        ? null
+        : Class1Class.fromJson(json["class11"]),
+    class12: json["class12"] == null
+        ? null
+        : Class1Class.fromJson(json["class12"]),
   );
 
   Map<String, dynamic> toJson() => {
     "class1": class1?.toJson(),
+    "class2": class2?.toJson(),
+    "class3": class3?.toJson(),
+    "class4": class4?.toJson(),
+    "class5": class5?.toJson(),
+    "class6": class6?.toJson(),
+    "class7": class7?.toJson(),
+    "class8": class8?.toJson(),
+    "class9": class9?.toJson(),
     "class10": class10?.toJson(),
+    "class11": class11?.toJson(),
+    "class12": class12?.toJson(),
   };
 }
 
